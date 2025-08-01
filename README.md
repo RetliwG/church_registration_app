@@ -18,6 +18,13 @@ A simple web application for managing church youth registration and attendance t
 - **Hosting**: Can be hosted on any static web server (GitHub Pages, Netlify, etc.)
 - **Cost**: Completely free to run
 
+## Quick Start
+
+1. **Set up Google Sheets** (see detailed guide in `SETUP_GUIDE.md`)
+2. **Configure your app** by updating `config.js` with your API key and Spreadsheet ID
+3. **Deploy to GitHub Pages** (instructions below)
+4. **Test on your iPad** - your app will be live at `https://retliwg.github.io/church_registration_app`
+
 ## Setup Instructions
 
 ### 1. Create Google Sheets
@@ -60,30 +67,44 @@ A simple web application for managing church youth registration and attendance t
    };
    ```
 
-### 4. Deploy the Application
+### 4. Deploy with GitHub Pages
 
-#### Option 1: GitHub Pages (Recommended)
-1. Create a new GitHub repository
-2. Upload all the files to the repository
-3. Go to repository Settings > Pages
-4. Select "Deploy from a branch" and choose "main"
-5. Your app will be available at `https://yourusername.github.io/repository-name`
+Since you're already working with this GitHub repository, deploying with GitHub Pages is the easiest option:
 
-#### Option 2: Netlify
-1. Go to [Netlify](https://netlify.com)
-2. Drag and drop your project folder
-3. Your app will be deployed with a custom URL
-
-#### Option 3: Local Testing
-1. If you have Python installed:
+1. **Push your code to GitHub** (if you haven't already):
    ```bash
-   python -m http.server 8000
+   git add .
+   git commit -m "Initial church registration app"
+   git push origin main
    ```
-2. If you have Node.js installed:
-   ```bash
-   npx serve .
-   ```
-3. Open your browser to the provided local URL
+
+2. **Enable GitHub Pages**:
+   - Go to your repository on GitHub.com
+   - Click on "Settings" tab
+   - Scroll down to "Pages" in the left sidebar
+   - Under "Source", select "Deploy from a branch"
+   - Choose "main" branch and "/ (root)" folder
+   - Click "Save"
+
+3. **Access your app**:
+   - GitHub will provide a URL like: `https://retliwg.github.io/church_registration_app`
+   - It may take a few minutes for the site to be available
+   - You'll see a green checkmark when it's ready
+
+4. **Update config.js with your credentials**:
+   - Your app is now live, but you need to add your Google Sheets API key and Spreadsheet ID
+   - Edit `config.js` directly on GitHub or locally and push the changes
+
+#### Alternative Options:
+
+**Local Testing** (for development):
+- If you have Python: `python -m http.server 8000`
+- If you have Node.js: `npx serve .`
+- Open your browser to `http://localhost:8000`
+
+**Other Hosting Services**:
+- [Netlify](https://netlify.com) - Drag and drop your project folder
+- [Vercel](https://vercel.com) - Connect your GitHub repository
 
 ## Data Structure
 
@@ -161,9 +182,15 @@ A simple web application for managing church youth registration and attendance t
 - Verify your internet connection
 
 ### App not loading on iPad
-- Ensure you're using HTTPS (required for GitHub Pages/Netlify)
-- Clear your browser cache
+- Ensure you're using HTTPS (GitHub Pages automatically provides this)
+- Clear your browser cache and reload
 - Try refreshing the page
+- Check that your Google Sheets configuration is correct
+
+### GitHub Pages not updating
+- Changes can take a few minutes to appear
+- Check the "Actions" tab in your GitHub repository for deployment status
+- Make sure you pushed your latest changes to the main branch
 
 ## Security Notes
 
