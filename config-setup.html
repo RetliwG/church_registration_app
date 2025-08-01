@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Registration - Setup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Church Youth Registration Setup</h1>
+        </header>
+
+        <section class="section active">
+            <h2>Configure Your Private Google Sheets Connection</h2>
+            
+            <div class="form-container">
+                <p>Set up secure access to your private Google Sheets using OAuth authentication. Your data stays private and only authorized users can access it.</p>
+                
+                <form id="configForm">
+                    <div class="form-group">
+                        <label for="oauthClientId">Google OAuth Client ID *</label>
+                        <input type="text" id="oauthClientId" name="oauthClientId" required 
+                               placeholder="Enter your OAuth Client ID">
+                        <small>Get this from Google Cloud Console > Credentials</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="spreadsheetId">Spreadsheet ID *</label>
+                        <input type="text" id="spreadsheetId" name="spreadsheetId" required 
+                               placeholder="Enter your Google Spreadsheet ID">
+                        <small>Copy this from your private Google Sheets URL</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="saveConfigBtn" class="btn btn-primary">Save Configuration</button>
+                        <button type="button" id="testAuthBtn" class="btn btn-secondary">Test Authentication</button>
+                    </div>
+                </form>
+                
+                <div id="connectionStatus" class="connection-status"></div>
+                
+                <div class="info-box">
+                    <h3>🔒 Privacy & Security</h3>
+                    <ul>
+                        <li><strong>Private spreadsheet</strong> - only you and authorized users can access</li>
+                        <li><strong>OAuth authentication</strong> - users login with Google accounts</li>
+                        <li><strong>No API keys</strong> - uses secure OAuth flow instead</li>
+                        <li><strong>Local storage only</strong> - configuration stored in your browser</li>
+                        <li><strong>Granular permissions</strong> - access only to your specific spreadsheet</li>
+                    </ul>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="proceedToAppBtn" class="btn btn-success" disabled>
+                        Proceed to Application
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+        <!-- Google API Script -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="config.js"></script>
+    <script src="oauth.js"></script>
+    <script src="config-setup.js"></script>
+</body>
+</html>

@@ -1,29 +1,37 @@
-# Church Youth Registration App
+# Church Youth Registration PWA
 
-A simple web application for managing church youth registration and attendance tracking using Google Sheets as the backend.
+A Progressive Web App for managing church youth registration and attendance tracking with offline capabilities and secure Google Sheets integration.
 
-## Features
+## 🌟 Features
 
-- **Parent & Child Registration**: Register parent details and multiple children in one form
-- **Sign In/Out Management**: Quick search and selection for signing children in and out
-- **Real-time Attendance Tracking**: View all currently signed-in children
-- **iPad Optimized**: Responsive design that works great on tablets
-- **Google Sheets Integration**: All data stored in Google Sheets (free and accessible)
-- **No Login Required**: Simple, direct access to the application
+- **📱 Installable App**: Works like a native app on iPad - install from home screen
+- **🔄 Offline/Online Sync**: Register and track attendance even without internet
+- **👥 Parent & Child Registration**: Register parent details and multiple children in one form
+- **✅ Sign In/Out Management**: Quick search and selection for signing children in and out
+- **📊 Real-time Attendance Tracking**: View all currently signed-in children
+- **🎨 iPad Optimized**: Responsive design that works perfectly on tablets
+- **☁️ Google Sheets Integration**: All data synced to private Google Sheets
+- **🔐 Secure Authentication**: Google OAuth login to protect sensitive data
+- **💾 Smart Caching**: Works offline, syncs when back online
 
-## Technology Stack
+## 💻 Technology Stack
 
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Backend**: Google Sheets API
-- **Hosting**: Can be hosted on any static web server (GitHub Pages, Netlify, etc.)
-- **Cost**: Completely free to run
+- **Frontend**: Progressive Web App (PWA) with HTML5, CSS3, JavaScript (ES6+)
+- **Authentication**: Google OAuth 2.0 for secure access
+- **Data Storage**: Private Google Sheets with service account access
+- **Offline Storage**: IndexedDB for local caching and offline functionality
+- **Hosting**: GitHub Pages with secure credential management
+- **Cost**: Completely free to run (no server costs)
 
-## Quick Start
+## 🚀 Quick Start
 
-1. **Set up Google Sheets** (see detailed guide in `SETUP_GUIDE.md`)
-2. **Configure your app** by updating `config.js` with your API key and Spreadsheet ID
-3. **Deploy to GitHub Pages** (instructions below)
-4. **Test on your iPad** - your app will be live at `https://retliwg.github.io/church_registration_app`
+1. **Set up Private Google Sheets** with OAuth authentication (see `SETUP_GUIDE.md`)
+2. **Deploy to GitHub Pages** (instructions below) 
+3. **Install PWA on iPad** - visit your site and "Add to Home Screen"
+4. **Login with Google** to access your private church data
+5. **Works offline** - register families and track attendance even without internet!
+
+**🔒 Privacy**: Your data stays private in your Google account, accessible only to authorized users.
 
 ## Setup Instructions
 
@@ -37,11 +45,9 @@ A simple web application for managing church youth registration and attendance t
    - `Children`
    - `SignInOut`
 
-### 2. Set up Google Sheets API
+### 2. Set up Google OAuth & Sheets API
 
-**Important**: Since this app runs entirely in the browser (client-side), there are two approaches based on your privacy needs:
-
-**Option A: Simple Setup - Public Spreadsheet (Recommended for getting started)**
+**🔐 Secure Setup with Private Spreadsheet**
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
@@ -49,47 +55,41 @@ A simple web application for managing church youth registration and attendance t
    - Go to "APIs & Services" > "Library"
    - Search for "Google Sheets API"
    - Click on it and press "Enable"
-4. Create credentials:
+4. **Set up OAuth 2.0 (for user authentication)**:
    - Go to "APIs & Services" > "Credentials"
-   - Click "Create Credentials" > "API Key"
-   - Copy the API key
-   - **Important**: Click "Restrict Key" to add security restrictions:
-     - Under "API restrictions", select "Restrict key" and choose "Google Sheets API"
-     - Under "Website restrictions", select "HTTP referrers" and add:
-       - `https://retliwg.github.io/church_registration_app/*` (your GitHub Pages URL)
-       - `http://localhost:*` (for local testing)
-   - Click "Save"
-5. Make your spreadsheet public:
-   - Open your Google Sheet
-   - Click "Share" in the top right
-   - Change access to "Anyone with the link can view"
-   - Copy the spreadsheet ID from the URL (the long string between `/d/` and `/edit`)
+   - Click "Create Credentials" > "OAuth 2.0 Client IDs"
+   - Choose "Web application"
+   - Add authorized JavaScript origins:
+     - `https://retliwg.github.io`
+   - Add authorized redirect URIs:
+     - `https://retliwg.github.io/church_registration_app/`
+   - Click "Create" and copy the Client ID
+5. **Configure OAuth Consent Screen**:
+   - Go to "APIs & Services" > "OAuth consent screen"
+   - Choose "External" (unless you have a Google Workspace)
+   - Fill in app name: "Church Youth Registration"
+   - Add your email as developer contact
+   - Add scopes: "Google Sheets API" read/write access
+6. **Keep your spreadsheet private**:
+   - Your Google Sheet stays private
+   - Only users you authorize can access it
+   - No need to make it public!
 
-**Option B: Private Spreadsheet (Requires backend server)**
+### 3. Configure the PWA
 
-If you need to keep your spreadsheet completely private, you'll need to:
-1. Set up a backend server (Node.js, Python, etc.) that handles the Google Sheets API calls
-2. Use service account authentication on the server
-3. Have your web app communicate with your backend instead of directly with Google Sheets
+**🔒 Secure OAuth Configuration**
 
-This is more complex but provides complete privacy. If you need this approach, consider hosting services like:
-- Railway.app (free tier)
-- Render.com (free tier)
-- Heroku (has free options)
+1. **Deploy your app first** (step 4 below)
+2. **Visit the configuration page**: `https://retliwg.github.io/church_registration_app/config-setup.html`
+3. **Enter your OAuth Client ID and Spreadsheet ID**
+4. **Test the authentication** - you'll be prompted to login with Google
+5. **Authorize the app** to access your private Google Sheets
 
-**Recommendation**: Start with Option A to get your app working, then migrate to Option B if privacy becomes a concern.
-
-### 3. Configure the Application
-
-1. Open `config.js` in your text editor
-2. Replace the placeholder values:
-   ```javascript
-   const CONFIG = {
-       GOOGLE_SHEETS_API_KEY: 'your-actual-api-key-here',
-       SPREADSHEET_ID: 'your-spreadsheet-id-here',
-       // ... rest of the config
-   };
-   ```
+**Why this is secure:**
+- ✅ **Private spreadsheet** - only authorized users can access
+- ✅ **OAuth authentication** - users login with their Google accounts
+- ✅ **No API keys in code** - uses secure OAuth flow
+- ✅ **Granular permissions** - only access to specified spreadsheet
 
 ### 4. Deploy with GitHub Pages
 
@@ -108,9 +108,16 @@ Since you're already working with this GitHub repository, deploying with GitHub 
    - It may take a few minutes for the site to be available
    - You'll see a green checkmark when it's ready
 
-3. **Update config.js with your credentials**:
-   - Your app is now live, but you need to add your Google Sheets API key and Spreadsheet ID
-   - Edit `config.js` directly on GitHub or locally and push the changes
+3. **Install the PWA on your iPad**:
+   - Visit your app URL in Safari
+   - Tap Share → "Add to Home Screen"
+   - The app will install like a native app!
+
+4. **Login and start using**:
+   - Open the installed app
+   - Login with your Google account
+   - Start registering families and tracking attendance
+   - Works offline automatically!
 
 #### Alternative Options:
 

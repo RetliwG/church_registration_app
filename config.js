@@ -1,8 +1,30 @@
-// Configuration for Google Sheets API
+// Configuration for Google Sheets API with OAuth - Secure Version
 const CONFIG = {
-    // Replace these with your actual values after setting up Google Sheets API
-    GOOGLE_SHEETS_API_KEY: 'YOUR_GOOGLE_SHEETS_API_KEY',
-    SPREADSHEET_ID: 'YOUR_SPREADSHEET_ID',
+    // OAuth Configuration (set via config-setup.html)
+    get GOOGLE_OAUTH_CLIENT_ID() {
+        return localStorage.getItem('church_app_oauth_client_id') || 'NOT_CONFIGURED';
+    },
+    
+    get SPREADSHEET_ID() {
+        const id = localStorage.getItem('church_app_spreadsheet_id');
+        // Extract just the ID if full URL was provided
+        if (id && id.includes('/d/')) {
+            const match = id.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : id;
+        }
+        return id || 'NOT_CONFIGURED';
+    },
+    
+    // Check if configuration is complete
+    isConfigured() {
+        return this.GOOGLE_OAUTH_CLIENT_ID !== 'NOT_CONFIGURED' && 
+               this.SPREADSHEET_ID !== 'NOT_CONFIGURED';
+    },
+    
+    // Check if user is authenticated
+    isAuthenticated() {
+        return localStorage.getItem('church_app_auth_token') !== null;
+    },
     
     // Sheet names (tabs in your Google Spreadsheet)
     SHEETS: {
@@ -11,11 +33,16 @@ const CONFIG = {
         SIGNIN: 'SignInOut'
     },
     
-    // Discovery document for Google Sheets API
+    // Google OAuth Configuration
+    OAUTH_SCOPES: 'https://www.googleapis.com/auth/spreadsheets',
     DISCOVERY_DOC: 'https://sheets.googleapis.com/$discovery/rest?version=v4',
     
-    // Scope for Google Sheets API
-    SCOPES: 'https://www.googleapis.com/auth/spreadsheets'
+    // OAuth endpoints
+    OAUTH_ENDPOINTS: {
+        AUTH_URL: 'https://accounts.google.com/oauth2/v2/auth',
+        TOKEN_URL: 'https://oauth2.googleapis.com/token',
+        USERINFO_URL: 'https://www.googleapis.com/oauth2/v2/userinfo'
+    }
 };
 
 // Column mappings for each sheet

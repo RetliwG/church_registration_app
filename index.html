@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Church Youth Registration</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Church Registration">
+    
+    <!-- PWA Icons for iOS -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    
     <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
@@ -126,6 +140,7 @@
     <div id="messageContainer" class="message-container"></div>
 
     <script src="config.js"></script>
+    <script src="oauth.js"></script>
     <script src="googleSheets.js"></script>
     <script src="app.js"></script>
 </body>

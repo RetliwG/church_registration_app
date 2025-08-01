@@ -1,112 +1,196 @@
-// Google Sheets API integration
+// Google Sheets API Integration with OAuth
 class GoogleSheetsAPI {
     constructor() {
-        this.gapi = null;
-        this.isInitialized = false;
+        this.spreadsheetId = CONFIG.GOOGLE_SPREADSHEET_ID;
+        this.baseUrl = 'https://sheets.googleapis.com/v4/spreadsheets';
+        this.isOnline = navigator.onLine;
+        
+        // Initialize IndexedDB for offline storage
+        this.initOfflineStorage();
     }
 
-    async initialize() {
-        try {
-            await this.loadGAPI();
-            await gapi.load('client', this.initializeGAPIClient.bind(this));
-            this.isInitialized = true;
-            console.log('Google Sheets API initialized successfully');
-        } catch (error) {
-            console.error('Error initializing Google Sheets API:', error);
-            throw error;
-        }
-    }
-
-    loadGAPI() {
+    async initOfflineStorage() {
         return new Promise((resolve, reject) => {
-            if (window.gapi) {
+            const request = indexedDB.open('ChurchAppDB', 1);
+            
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+                this.db = request.result;
                 resolve();
-            } else {
-                const script = document.createElement('script');
-                script.src = 'https://apis.google.com/js/api.js';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            }
+            };
+            
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                
+                // Create object stores for offline data
+                if (!db.objectStoreNames.contains('registrations')) {
+                    const registrationStore = db.createObjectStore('registrations', { keyPath: 'id' });
+                    registrationStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    registrationStore.createIndex('synced', 'synced', { unique: false });
+                }
+                
+                if (!db.objectStoreNames.contains('attendances')) {
+                    const attendanceStore = db.createObjectStore('attendances', { keyPath: 'id' });
+                    attendanceStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    attendanceStore.createIndex('synced', 'synced', { unique: false });
+                }
+                
+                if (!db.objectStoreNames.contains('signInOuts')) {
+                    const signInOutStore = db.createObjectStore('signInOuts', { keyPath: 'id' });
+                    signInOutStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    signInOutStore.createIndex('synced', 'synced', { unique: false });
+                }
+                
+                if (!db.objectStoreNames.contains('offlineOperations')) {
+                    const operationStore = db.createObjectStore('offlineOperations', { keyPath: 'id' });
+                    operationStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    operationStore.createIndex('synced', 'synced', { unique: false });
+                }
+            };
         });
     }
 
-    async initializeGAPIClient() {
-        await gapi.client.init({
-            apiKey: CONFIG.GOOGLE_SHEETS_API_KEY,
-            discoveryDocs: [CONFIG.DISCOVERY_DOC],
-        });
+    async ensureAuthenticated() {
+        if (!oauthManager) {
+            oauthManager = new OAuthManager();
+        }
+        
+        if (!oauthManager.isSignedIn()) {
+            throw new Error('User not authenticated. Please sign in first.');
+        }
+        
+        await oauthManager.refreshTokenIfNeeded();
     }
 
     async readSheet(sheetName, range = '') {
         try {
+            await this.ensureAuthenticated();
+            
             const fullRange = range ? `${sheetName}!${range}` : sheetName;
-            const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: fullRange,
-            });
-            return response.result.values || [];
+            const url = `${this.baseUrl}/${this.spreadsheetId}/values/${fullRange}`;
+            
+            const response = await oauthManager.authenticatedFetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.values || [];
         } catch (error) {
-            console.error(`Error reading sheet ${sheetName}:`, error);
-            throw error;
+            console.error('Error reading sheet:', error);
+            // Return cached data if available
+            return this.getCachedData(sheetName) || [];
         }
     }
 
     async writeSheet(sheetName, range, values) {
         try {
-            const response = await gapi.client.sheets.spreadsheets.values.update({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: `${sheetName}!${range}`,
-                valueInputOption: 'USER_ENTERED',
-                resource: {
+            await this.ensureAuthenticated();
+            
+            const url = `${this.baseUrl}/${this.spreadsheetId}/values/${sheetName}!${range}?valueInputOption=RAW`;
+            
+            const response = await oauthManager.authenticatedFetch(url, {
+                method: 'PUT',
+                body: JSON.stringify({
                     values: values
-                }
+                })
             });
-            return response.result;
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
         } catch (error) {
-            console.error(`Error writing to sheet ${sheetName}:`, error);
+            console.error('Error writing to sheet:', error);
+            // Store for offline sync
+            await this.storeOfflineData('write', { sheetName, range, values });
             throw error;
         }
     }
 
     async appendSheet(sheetName, values) {
         try {
-            const response = await gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: sheetName,
-                valueInputOption: 'USER_ENTERED',
-                resource: {
+            await this.ensureAuthenticated();
+            
+            const url = `${this.baseUrl}/${this.spreadsheetId}/values/${sheetName}:append?valueInputOption=RAW`;
+            
+            const response = await oauthManager.authenticatedFetch(url, {
+                method: 'POST',
+                body: JSON.stringify({
                     values: values
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Error appending to sheet:', error);
+            // Store for offline sync
+            await this.storeOfflineData('append', { sheetName, values });
+            throw error;
+        }
+    }
+
+    async storeOfflineData(operation, data) {
+        if (!this.db) return;
+        
+        const transaction = this.db.transaction(['offlineOperations'], 'readwrite');
+        const store = transaction.objectStore('offlineOperations');
+        
+        const operationData = {
+            id: Date.now() + Math.random(),
+            operation,
+            data,
+            timestamp: new Date().toISOString(),
+            synced: false
+        };
+        
+        await store.add(operationData);
+    }
+
+    getCachedData(sheetName) {
+        // Return cached data based on sheet name
+        const cacheMap = {
+            [CONFIG.SHEETS.PARENTS]: 'parents',
+            [CONFIG.SHEETS.CHILDREN]: 'children',
+            [CONFIG.SHEETS.SIGNIN]: 'signins'
+        };
+        
+        return this.cache?.[cacheMap[sheetName]] || [];
+    }
+
+    async syncOfflineData() {
+        if (!this.db || !navigator.onLine) return;
+        
+        try {
+            const transaction = this.db.transaction(['offlineOperations'], 'readwrite');
+            const store = transaction.objectStore('offlineOperations');
+            const index = store.index('synced');
+            
+            const unsyncedOperations = await index.getAll(false);
+            
+            for (const operation of unsyncedOperations) {
+                try {
+                    if (operation.operation === 'append') {
+                        await this.appendSheet(operation.data.sheetName, operation.data.values);
+                    } else if (operation.operation === 'write') {
+                        await this.writeSheet(operation.data.sheetName, operation.data.range, operation.data.values);
+                    }
+                    
+                    // Mark as synced
+                    operation.synced = true;
+                    await store.put(operation);
+                } catch (error) {
+                    console.error('Error syncing operation:', error);
                 }
-            });
-            return response.result;
+            }
         } catch (error) {
-            console.error(`Error appending to sheet ${sheetName}:`, error);
-            throw error;
-        }
-    }
-
-    async clearSheet(sheetName, range) {
-        try {
-            const response = await gapi.client.sheets.spreadsheets.values.clear({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: `${sheetName}!${range}`,
-            });
-            return response.result;
-        } catch (error) {
-            console.error(`Error clearing sheet ${sheetName}:`, error);
-            throw error;
-        }
-    }
-
-    // Helper method to find the next empty row
-    async getNextEmptyRow(sheetName) {
-        try {
-            const data = await this.readSheet(sheetName);
-            return data.length + 1; // +1 because sheets are 1-indexed
-        } catch (error) {
-            console.error(`Error getting next empty row for ${sheetName}:`, error);
-            return 1; // Start from row 1 if error
+            console.error('Error syncing offline data:', error);
         }
     }
 }

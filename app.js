@@ -1,5 +1,8 @@
 // Main application logic
 document.addEventListener('DOMContentLoaded', async function() {
+    // Register Service Worker for PWA functionality
+    await registerServiceWorker();
+    
     // Initialize the application
     await initializeApp();
     
@@ -8,11 +11,79 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Update current date display
     updateCurrentDate();
+    
+    // Check for app updates
+    checkForUpdates();
 });
+
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('/church_registration_app/sw.js');
+            console.log('Service Worker registered successfully:', registration);
+            
+            // Listen for updates
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        showMessage('App update available! Refresh to get the latest version.', 'info');
+                    }
+                });
+            });
+            
+            // Listen for messages from service worker
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data.type === 'SYNC_COMPLETE') {
+                    showMessage('Data synced successfully!', 'success');
+                    // Refresh the current view
+                    if (document.getElementById('attendance').classList.contains('active')) {
+                        refreshAttendanceView();
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.error('Service Worker registration failed:', error);
+        }
+    }
+}
+
+function checkForUpdates() {
+    // Check for app updates every 5 minutes
+    setInterval(async () => {
+        if ('serviceWorker' in navigator) {
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (registration) {
+                registration.update();
+            }
+        }
+    }, 5 * 60 * 1000); // 5 minutes
+}
 
 async function initializeApp() {
     try {
         showLoading();
+        
+        // Check if configuration is complete
+        if (!CONFIG.isConfigured()) {
+            hideLoading();
+            showMessage('Configuration required. Redirecting to setup...', 'info');
+            setTimeout(() => {
+                window.location.href = 'config-setup.html';
+            }, 2000);
+            return;
+        }
+        
+        // Initialize OAuth manager
+        oauthManager = new OAuthManager();
+        
+        // Check if user is authenticated
+        if (!oauthManager.isSignedIn()) {
+            hideLoading();
+            showAuthenticationRequired();
+            return;
+        }
         
         // Initialize data manager
         dataManager = new DataManager();
@@ -21,12 +92,22 @@ async function initializeApp() {
         // Load initial data
         await refreshAttendanceView();
         
+        // Update user info display
+        updateUserInfoDisplay();
+        
         hideLoading();
         showMessage('Application initialized successfully!', 'success');
     } catch (error) {
         hideLoading();
         console.error('Error initializing app:', error);
-        showMessage('Error initializing application. Please check your Google Sheets configuration.', 'error');
+        if (error.message.includes('API key') || error.message.includes('credentials')) {
+            showMessage('Configuration error. Please check your setup.', 'error');
+            setTimeout(() => {
+                window.location.href = 'config-setup.html';
+            }, 3000);
+        } else {
+            showMessage('Error initializing application. Please check your Google Sheets configuration.', 'error');
+        }
     }
 }
 
@@ -52,8 +133,86 @@ function setupEventListeners() {
     // Attendance
     document.getElementById('refreshAttendanceBtn').addEventListener('click', refreshAttendanceView);
 
+    // Network status listeners for PWA
+    window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOfflineStatus);
+    
+    // Check initial network status
+    updateNetworkStatus();
+
     // Add first child form by default
     addChildForm();
+}
+
+// PWA Network Status Functions
+function handleOnlineStatus() {
+    updateNetworkStatus();
+    showMessage('You\'re back online! Syncing data...', 'success');
+    
+    // Trigger background sync if supported
+    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+        navigator.serviceWorker.ready.then(registration => {
+            return registration.sync.register('church-registration-sync');
+        });
+    }
+}
+
+function handleOfflineStatus() {
+    updateNetworkStatus();
+    showMessage('You\'re offline. Data will be saved locally and synced when back online.', 'info');
+}
+
+function updateNetworkStatus() {
+    const statusIndicator = getOrCreateNetworkStatusIndicator();
+    
+    if (navigator.onLine) {
+        statusIndicator.className = 'network-status online';
+        statusIndicator.innerHTML = '🟢 Online';
+    } else {
+        statusIndicator.className = 'network-status offline';
+        statusIndicator.innerHTML = '🔴 Offline';
+    }
+}
+
+function getOrCreateNetworkStatusIndicator() {
+    let indicator = document.getElementById('networkStatus');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'networkStatus';
+        indicator.className = 'network-status';
+        
+        // Add to header
+        const header = document.querySelector('header');
+        header.appendChild(indicator);
+        
+        // Add CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            .network-status {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                padding: 8px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .network-status.online {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            .network-status.offline {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    return indicator;
 }
 
 // Navigation
@@ -466,8 +625,81 @@ function showMessage(message, type = 'info') {
     });
 }
 
+// Authentication functions
+function showAuthenticationRequired() {
+    const authHtml = `
+        <div class="auth-required">
+            <h2>Authentication Required</h2>
+            <p>Please sign in with your Google account to access the church registration system.</p>
+            <p>This ensures that sensitive information remains private and secure.</p>
+            <button id="signInButton" class="btn btn-primary">Sign In with Google</button>
+        </div>
+    `;
+    
+    document.getElementById('mainContent').innerHTML = authHtml;
+    document.getElementById('signInButton').addEventListener('click', handleSignIn);
+}
+
+async function handleSignIn() {
+    try {
+        showLoading();
+        const success = await oauthManager.signIn();
+        
+        if (success) {
+            showMessage('Signed in successfully!', 'success');
+            // Reinitialize the app
+            await initializeApp();
+        } else {
+            hideLoading();
+            showMessage('Sign-in was cancelled or failed.', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Sign-in error:', error);
+        showMessage('Sign-in failed. Please try again.', 'error');
+    }
+}
+
+async function handleSignOut() {
+    try {
+        const success = await oauthManager.signOut();
+        if (success) {
+            showMessage('Signed out successfully.', 'info');
+            showAuthenticationRequired();
+        }
+    } catch (error) {
+        console.error('Sign-out error:', error);
+        showMessage('Sign-out failed.', 'error');
+    }
+}
+
+function updateUserInfoDisplay() {
+    const userInfo = oauthManager.getUserInfo();
+    if (userInfo) {
+        // Add user info to header if not already present
+        const header = document.querySelector('header');
+        let userInfoEl = document.getElementById('userInfo');
+        
+        if (!userInfoEl) {
+            userInfoEl = document.createElement('div');
+            userInfoEl.id = 'userInfo';
+            userInfoEl.className = 'user-info';
+            header.appendChild(userInfoEl);
+        }
+        
+        userInfoEl.innerHTML = `
+            <span>Welcome, ${userInfo.name}</span>
+            <button id="signOutButton" class="btn btn-secondary btn-sm">Sign Out</button>
+        `;
+        
+        document.getElementById('signOutButton').addEventListener('click', handleSignOut);
+    }
+}
+
 // Make functions available globally for onclick handlers
 window.showSection = showSection;
 window.removeChildForm = removeChildForm;
 window.removeSelectedChild = removeSelectedChild;
 window.signOutFromAttendance = signOutFromAttendance;
+window.handleSignIn = handleSignIn;
+window.handleSignOut = handleSignOut;
