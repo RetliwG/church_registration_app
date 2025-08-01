@@ -39,6 +39,10 @@ A simple web application for managing church youth registration and attendance t
 
 ### 2. Set up Google Sheets API
 
+**Important**: Since this app runs entirely in the browser (client-side), there are two approaches based on your privacy needs:
+
+**Option A: Simple Setup - Public Spreadsheet (Recommended for getting started)**
+
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
 3. Enable the Google Sheets API:
@@ -49,11 +53,31 @@ A simple web application for managing church youth registration and attendance t
    - Go to "APIs & Services" > "Credentials"
    - Click "Create Credentials" > "API Key"
    - Copy the API key
+   - **Important**: Click "Restrict Key" to add security restrictions:
+     - Under "API restrictions", select "Restrict key" and choose "Google Sheets API"
+     - Under "Website restrictions", select "HTTP referrers" and add:
+       - `https://retliwg.github.io/church_registration_app/*` (your GitHub Pages URL)
+       - `http://localhost:*` (for local testing)
+   - Click "Save"
 5. Make your spreadsheet public:
    - Open your Google Sheet
    - Click "Share" in the top right
    - Change access to "Anyone with the link can view"
    - Copy the spreadsheet ID from the URL (the long string between `/d/` and `/edit`)
+
+**Option B: Private Spreadsheet (Requires backend server)**
+
+If you need to keep your spreadsheet completely private, you'll need to:
+1. Set up a backend server (Node.js, Python, etc.) that handles the Google Sheets API calls
+2. Use service account authentication on the server
+3. Have your web app communicate with your backend instead of directly with Google Sheets
+
+This is more complex but provides complete privacy. If you need this approach, consider hosting services like:
+- Railway.app (free tier)
+- Render.com (free tier)
+- Heroku (has free options)
+
+**Recommendation**: Start with Option A to get your app working, then migrate to Option B if privacy becomes a concern.
 
 ### 3. Configure the Application
 
@@ -71,14 +95,7 @@ A simple web application for managing church youth registration and attendance t
 
 Since you're already working with this GitHub repository, deploying with GitHub Pages is the easiest option:
 
-1. **Push your code to GitHub** (if you haven't already):
-   ```bash
-   git add .
-   git commit -m "Initial church registration app"
-   git push origin main
-   ```
-
-2. **Enable GitHub Pages**:
+1. **Enable GitHub Pages**:
    - Go to your repository on GitHub.com
    - Click on "Settings" tab
    - Scroll down to "Pages" in the left sidebar
@@ -86,12 +103,12 @@ Since you're already working with this GitHub repository, deploying with GitHub 
    - Choose "main" branch and "/ (root)" folder
    - Click "Save"
 
-3. **Access your app**:
+2. **Access your app**:
    - GitHub will provide a URL like: `https://retliwg.github.io/church_registration_app`
    - It may take a few minutes for the site to be available
    - You'll see a green checkmark when it's ready
 
-4. **Update config.js with your credentials**:
+3. **Update config.js with your credentials**:
    - Your app is now live, but you need to add your Google Sheets API key and Spreadsheet ID
    - Edit `config.js` directly on GitHub or locally and push the changes
 
@@ -175,6 +192,7 @@ Since you're already working with this GitHub repository, deploying with GitHub 
 - Check that your API key is correct in `config.js`
 - Verify that the Google Sheets API is enabled
 - Ensure your spreadsheet is publicly accessible
+- **Check API key restrictions**: Make sure your website URL is allowed in the API key restrictions
 
 ### "Error saving/loading data"
 - Confirm your spreadsheet ID is correct
@@ -194,9 +212,21 @@ Since you're already working with this GitHub repository, deploying with GitHub 
 
 ## Security Notes
 
-- The API key used is a public key with read/write access to your specific spreadsheet
-- No sensitive authentication data is stored in the application
-- All data is stored in your Google Sheets, which you control
+- **Data Privacy Options**: 
+  - **Public Spreadsheet**: Anyone with the link can view your data (but cannot edit without API key)
+  - **Private Spreadsheet**: Requires a backend server - more complex but completely private
+- **Client-Side Limitations**: This app runs in the browser, so some credentials are visible to users
+- **API Key Security**: Restricted to your specific website and Google Sheets API only
+- **Recommendation**: Start with public spreadsheet approach, migrate to backend solution if privacy is critical
+- **HTTPS Required**: GitHub Pages automatically provides HTTPS, which is required for secure API calls
+
+### Privacy Considerations
+
+If your church registration data is sensitive, consider:
+1. Using a dedicated spreadsheet just for this app (no existing sensitive data)
+2. Implementing the backend server approach for complete privacy
+3. Using the app only on trusted devices/networks
+4. Regularly reviewing who has access to the spreadsheet
 
 ## Customization
 
