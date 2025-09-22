@@ -45,6 +45,8 @@ This guide combines setup, configuration, and deployment instructions for your s
 
 ### 3. Google Sheets Preparation
 
+### 3. Google Sheets Preparation
+
 #### Create the Spreadsheet
 - [ ] Go to [Google Sheets](https://sheets.google.com)
 - [ ] Click the "+" button to create a new spreadsheet
@@ -68,32 +70,11 @@ The app will automatically create the required sheets, but you can set them up m
 - [ ] Share with specific users who need admin access (optional)
 - [ ] Note: Users will authenticate through the app to access data
 
-## ✅ GitHub Pages Deployment
-
-### 4. Repository Setup and Deployment
-- [ ] Fork or clone this repository to your GitHub account
-- [ ] Ensure all files are committed to the main branch
-- [ ] Make repository public (required for GitHub Pages)
-- [ ] Add your icon files (`icon-192.png` and `icon-512.png`) to the root directory
-
-### 5. Enable GitHub Pages
-- [ ] Go to repository Settings → Pages
-- [ ] Select "Deploy from a branch"
-- [ ] Choose "main" branch and "/ (root)" folder
-- [ ] Wait for deployment (usually 5-10 minutes)
-- [ ] Verify app loads at: `https://yourusername.github.io/church_registration_app/`
-
-### 6. Update OAuth Configuration
-- [ ] Return to Google Cloud Console > Credentials
-- [ ] Edit your OAuth 2.0 Client ID
-- [ ] Add your GitHub Pages URL to "Authorized JavaScript origins"
-- [ ] Test OAuth configuration
-- [ ] Ensure HTTPS is working (GitHub Pages provides this automatically)
-
 ## ✅ App Configuration
 
-### 7. Initial App Setup
-- [ ] Open your deployed app URL in a browser
+### 4. Initial App Setup
+### 4. Initial App Setup
+- [ ] Open your deployed app URL in a browser: `https://RetliwG.github.io/church_registration_app/`
 - [ ] The app will show a configuration screen
 - [ ] Complete initial configuration:
   - [ ] Enter your Google OAuth Client ID
@@ -102,7 +83,7 @@ The app will automatically create the required sheets, but you can set them up m
   - [ ] Click "Save Configuration" to store settings locally
   - [ ] Click "Proceed to Application" when setup is complete
 
-### 8. Authentication Testing
+### 5. Authentication Testing
 - [ ] Test Google sign-in functionality
 - [ ] Verify user can access the private spreadsheet
 - [ ] Check that authentication persists across browser sessions
@@ -111,14 +92,14 @@ The app will automatically create the required sheets, but you can set them up m
 
 ## ✅ PWA Installation & Testing
 
-### 9. Core Functionality Tests
+### 6. Core Functionality Tests
 - [ ] **Registration**: Test parent and child registration
 - [ ] **Search**: Verify child search functionality  
 - [ ] **Sign-in/out**: Test attendance tracking
 - [ ] **Data sync**: Confirm data appears in Google Sheets
 - [ ] **Offline mode**: Test offline functionality and background sync
 
-### 10. PWA Installation Tests
+### 7. PWA Installation Tests
 
 #### iPad Installation (Primary Target)
 - [ ] Open app in Safari on iPad
@@ -136,7 +117,7 @@ The app will automatically create the required sheets, but you can set them up m
 
 ## ✅ Security & Privacy
 
-### 11. Security Verification
+### 8. Security Verification
 - [ ] Confirm no API keys are exposed in client code
 - [ ] Verify OAuth tokens are properly managed
 - [ ] Test that unauthenticated users cannot access data
