@@ -77,6 +77,7 @@ async function initializeApp() {
         
         // Initialize OAuth manager
         oauthManager = new OAuthManager();
+        await oauthManager.initialize();
         
         // Check if user is authenticated
         if (!oauthManager.isSignedIn()) {
@@ -687,24 +688,38 @@ function showAuthenticationRequired() {
 }
 
 async function handleSignIn() {
+    console.log('handleSignIn called');
     try {
         showLoading();
+        
+        if (!oauthManager) {
+            console.log('Creating new OAuth manager');
+            oauthManager = new OAuthManager();
+            await oauthManager.initialize();
+        }
+        
+        console.log('Attempting sign in...');
         const success = await oauthManager.signIn();
+        console.log('Sign in result:', success);
         
         if (success) {
             showMessage('Signed in successfully!', 'success');
+            console.log('Removing auth content...');
             
             // Remove auth content and restore sections
             const authDiv = document.getElementById('authContent');
             if (authDiv) {
                 authDiv.remove();
+                console.log('Auth content removed');
             }
             
             // Show all sections again
             const sections = document.querySelectorAll('.section');
+            console.log('Restoring sections:', sections.length);
             sections.forEach(section => section.style.display = 'block');
             
             // Reinitialize the app
+            console.log('Reinitializing app...');
             await initializeApp();
         } else {
             hideLoading();
