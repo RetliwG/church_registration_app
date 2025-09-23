@@ -57,21 +57,42 @@ async function testAuthentication() {
             OAUTH_SCOPES: 'https://www.googleapis.com/auth/spreadsheets'
         };
         
-        // Initialize OAuth manager
-        const oauth = new OAuthManager();
-        await oauth.initialize();
+        // Wait for Google Identity Services to be ready
+        await new Promise((resolve) => {
+            const checkGIS = () => {
+                if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+                    resolve();
+                } else {
+                    setTimeout(checkGIS, 100);
+                }
+            };
+            checkGIS();
+        });
         
-        // Attempt to sign in
-        const success = await oauth.signIn();
+        // Initialize token client
+        const tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: 'https://www.googleapis.com/auth/spreadsheets',
+            callback: async (response) => {
+                if (response.error) {
+                    console.error('OAuth error:', response.error);
+                    updateConnectionStatus(`❌ Authentication failed: ${response.error}`, 'error');
+                    return;
+                }
+                
+                try {
+                    // Test access to the spreadsheet
+                    await testSpreadsheetAccess(response.access_token, spreadsheetId);
+                    updateConnectionStatus('✅ Authentication successful! You can now save the configuration.', 'success');
+                    document.getElementById('proceedToAppBtn').disabled = false;
+                } catch (error) {
+                    updateConnectionStatus(`❌ Spreadsheet access failed: ${error.message}`, 'error');
+                }
+            }
+        });
         
-        if (success && oauth.isSignedIn()) {
-            // Test access to the spreadsheet
-            await testSpreadsheetAccess(oauth.getAccessToken(), spreadsheetId);
-            updateConnectionStatus('✅ Authentication successful! You can now save the configuration.', 'success');
-            document.getElementById('proceedToAppBtn').disabled = false;
-        } else {
-            updateConnectionStatus('❌ Authentication failed: Sign-in was not completed', 'error');
-        }
+        // Request access token
+        tokenClient.requestAccessToken();
         
     } catch (error) {
         console.error('Authentication test failed:', error);
