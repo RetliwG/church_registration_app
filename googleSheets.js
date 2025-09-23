@@ -9,6 +9,12 @@ class GoogleSheetsAPI {
         this.initOfflineStorage();
     }
 
+    async initialize() {
+        // Wait for offline storage to be ready
+        await this.initOfflineStorage();
+        console.log('GoogleSheetsAPI initialized');
+    }
+
     async initOfflineStorage() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('ChurchAppDB', 1);
