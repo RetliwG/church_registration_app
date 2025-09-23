@@ -78,10 +78,8 @@ async function initializeApp() {
             if (CONFIG.GOOGLE_OAUTH_CLIENT_ID === 'NOT_CONFIGURED') missing.push('OAuth Client ID');
             if (CONFIG.SPREADSHEET_ID === 'NOT_CONFIGURED') missing.push('Spreadsheet ID');
             
-            showMessage(`Configuration incomplete. Missing: ${missing.join(', ')}. Redirecting to setup...`, 'info');
-            setTimeout(() => {
-                window.location.href = 'config-setup.html';
-            }, 2000);
+            // Show immediate configuration prompt
+            showConfigurationRequired(missing);
             return;
         }
         
@@ -248,6 +246,10 @@ function showSection(sectionName) {
     if (sectionName === 'attendance') {
         refreshAttendanceView();
     }
+}
+
+function openConfiguration() {
+    window.location.href = 'config-setup.html';
 }
 
 // Registration functionality
@@ -778,8 +780,77 @@ function updateUserInfoDisplay() {
     }
 }
 
+function showConfigurationRequired(missing) {
+    console.log('Showing configuration required screen for missing:', missing);
+    
+    const configHtml = `
+        <div class="config-required">
+            <h2>⚙️ Configuration Required</h2>
+            <p>The application needs to be configured before you can use it.</p>
+            <p><strong>Missing configuration:</strong> ${missing.join(', ')}</p>
+            <div class="config-steps">
+                <h3>What you need to do:</h3>
+                <ol>
+                    ${missing.includes('Spreadsheet ID') ? '<li><strong>Create a Google Spreadsheet</strong> for storing registration data</li>' : ''}
+                    ${missing.includes('OAuth Client ID') ? '<li><strong>Set up Google OAuth credentials</strong> for secure authentication</li>' : ''}
+                    <li><strong>Enter the configuration details</strong> in the setup page</li>
+                </ol>
+            </div>
+            <div class="config-actions">
+                <button id="openConfigButton" class="btn btn-primary">
+                    🚀 Open Configuration Setup
+                </button>
+                <button id="retryConfigButton" class="btn btn-secondary">
+                    🔄 Check Configuration Again
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Hide all sections first
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => section.style.display = 'none');
+    
+    // Find the container and add config content
+    const container = document.querySelector('.container');
+    
+    if (container) {
+        // Create or update config div
+        let configDiv = document.getElementById('configContent');
+        if (!configDiv) {
+            configDiv = document.createElement('div');
+            configDiv.id = 'configContent';
+            container.appendChild(configDiv);
+        }
+        
+        configDiv.innerHTML = configHtml;
+        
+        // Add event listeners
+        const openConfigButton = document.getElementById('openConfigButton');
+        const retryConfigButton = document.getElementById('retryConfigButton');
+        
+        if (openConfigButton) {
+            openConfigButton.addEventListener('click', () => {
+                window.location.href = 'config-setup.html';
+            });
+        }
+        
+        if (retryConfigButton) {
+            retryConfigButton.addEventListener('click', () => {
+                // Remove config content and retry initialization
+                configDiv.remove();
+                // Show sections again
+                sections.forEach(section => section.style.display = 'block');
+                // Retry initialization
+                initializeApp();
+            });
+        }
+    }
+}
+
 // Make functions available globally for onclick handlers
 window.showSection = showSection;
+window.openConfiguration = openConfiguration;
 window.removeChildForm = removeChildForm;
 window.removeSelectedChild = removeSelectedChild;
 window.signOutFromAttendance = signOutFromAttendance;

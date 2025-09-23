@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Church Youth Registration</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=6">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -22,7 +22,12 @@
 <body>
     <div class="container">
         <header>
-            <h1>Church Youth Registration</h1>
+            <div class="header-content">
+                <h1>Church Youth Registration</h1>
+                <button id="configBtn" class="config-btn" onclick="openConfiguration()" title="Settings & Configuration">
+                    ⚙️
+                </button>
+            </div>
             <nav>
                 <button class="nav-btn active" onclick="showSection('registration')">Registration</button>
                 <button class="nav-btn" onclick="showSection('signin')">Sign In/Out</button>
@@ -139,9 +144,9 @@
 
     <!-- Google Identity Services (GIS) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="config.js?v=5"></script>
-    <script src="oauth.js?v=5"></script>
-    <script src="googleSheets.js?v=5"></script>
-    <script src="app.js?v=5"></script>
+    <script src="config.js?v=6"></script>
+    <script src="oauth.js?v=6"></script>
+    <script src="googleSheets.js?v=6"></script>
+    <script src="app.js?v=6"></script>
 </body>
 </html>
