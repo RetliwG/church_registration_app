@@ -1,8 +1,5 @@
 // Configuration setup for secure OAuth credential management
 document.addEventListener('DOMContentLoaded', function() {
-    // Load Google APIs
-    loadGoogleAPIs();
-    
     // Check if configuration already exists
     checkExistingConfig();
     
@@ -11,20 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('testAuthBtn').addEventListener('click', testAuthentication);
     document.getElementById('proceedToAppBtn').addEventListener('click', proceedToApp);
 });
-
-async function loadGoogleAPIs() {
-    // Load Google API library
-    if (!window.gapi) {
-        const script = document.createElement('script');
-        script.src = 'https://apis.google.com/js/api.js';
-        script.onload = () => {
-            gapi.load('auth2', () => {
-                console.log('Google APIs loaded');
-            });
-        };
-        document.head.appendChild(script);
-    }
-}
 
 function checkExistingConfig() {
     const clientId = localStorage.getItem('church_app_oauth_client_id');
