@@ -1,5 +1,65 @@
+// Cache busting and version management
+function handleCacheBusting() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const version = urlParams.get('v');
+    const timestamp = urlParams.get('t');
+    
+    // If we have version parameters, clear them from URL for clean navigation
+    if (version || timestamp) {
+        console.log(`🚀 App loaded with version ${version}, timestamp ${timestamp}`);
+        console.log('🔄 Cache busting activated - loading fresh resources');
+        
+        // Clear the URL parameters without reloading
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        
+        // Force clear any cached resources
+        if ('caches' in window) {
+            caches.keys().then(cacheNames => {
+                return Promise.all(
+                    cacheNames.map(cacheName => {
+                        console.log('🧹 Clearing cache:', cacheName);
+                        return caches.delete(cacheName);
+                    })
+                );
+            });
+        }
+        
+        // Add a visual indicator that we're loading the new version
+        const body = document.body;
+        if (body) {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = `
+                position: fixed; top: 10px; right: 10px; 
+                background: #28a745; color: white; 
+                padding: 8px 12px; border-radius: 4px; 
+                font-size: 12px; z-index: 10000;
+                font-family: Arial, sans-serif;
+            `;
+            indicator.textContent = `✅ Version ${version} loaded`;
+            body.appendChild(indicator);
+            
+            // Remove indicator after 3 seconds
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 3000);
+        }
+    }
+    
+    // Also log the current script versions for debugging
+    console.log('📦 Script versions loaded:');
+    document.querySelectorAll('script[src]').forEach(script => {
+        console.log(`  - ${script.src}`);
+    });
+}
+
 // Main application logic
 document.addEventListener('DOMContentLoaded', async function() {
+    // Check for cache-busting parameters and force refresh if needed
+    handleCacheBusting();
+    
     // Register Service Worker for PWA functionality
     await registerServiceWorker();
     
@@ -19,8 +79,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            const registration = await navigator.serviceWorker.register('/church_registration_app/sw.js');
+            // Add cache-busting parameter to service worker
+            const swUrl = '/church_registration_app/sw.js?v=7&t=' + Date.now();
+            const registration = await navigator.serviceWorker.register(swUrl);
             console.log('Service Worker registered successfully:', registration);
+            
+            // Force update immediately
+            await registration.update();
             
             // Listen for updates
             registration.addEventListener('updatefound', () => {
