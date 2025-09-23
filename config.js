@@ -76,4 +76,6 @@ const COLUMNS = {
     }
 };
 
-export { CONFIG, COLUMNS };
+// Make CONFIG available globally (remove export statement for browser compatibility)
+window.CONFIG = CONFIG;
+window.COLUMNS = COLUMNS;

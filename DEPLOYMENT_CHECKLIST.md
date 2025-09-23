@@ -45,8 +45,6 @@ This guide combines setup, configuration, and deployment instructions for your s
 
 ### 3. Google Sheets Preparation
 
-### 3. Google Sheets Preparation
-
 #### Create the Spreadsheet
 - [ ] Go to [Google Sheets](https://sheets.google.com)
 - [ ] Click the "+" button to create a new spreadsheet
@@ -71,17 +69,19 @@ The app will automatically create the required sheets, but you can set them up m
 - [ ] Note: Users will authenticate through the app to access data
 
 ## ✅ App Configuration
-
 ### 4. Initial App Setup
-### 4. Initial App Setup
-- [ ] Open your deployed app URL in a browser: `https://RetliwG.github.io/church_registration_app/`
-- [ ] The app will show a configuration screen
+- [ ] **Go to the configuration setup page**: `https://RetliwG.github.io/church_registration_app/config-setup.html`
+  - **Important**: Don't go to the main app page first - you need to configure it first
 - [ ] Complete initial configuration:
-  - [ ] Enter your Google OAuth Client ID
-  - [ ] Enter your Google Spreadsheet ID
-  - [ ] Click "Test Authentication" to verify access
-  - [ ] Click "Save Configuration" to store settings locally
-  - [ ] Click "Proceed to Application" when setup is complete
+  - [ ] Enter your **Google OAuth Client ID** (the long string ending in `.apps.googleusercontent.com`)
+  - [ ] Enter your **Google Spreadsheet ID** (from the Google Sheets URL)
+  - [ ] **Note**: You only need the Client ID, NOT the Client Secret (OAuth secrets aren't used in browser apps)
+- [ ] Click "Test Authentication" to verify access:
+  - [ ] This will prompt you to sign in with Google
+  - [ ] Grant permissions to access your spreadsheet
+- [ ] Click "Save Configuration" to store settings in your browser's local storage
+- [ ] Click "Proceed to Application" to go to the main app
+- [ ] Verify the main app loads without the "Error initializing application" message
 
 ### 5. Authentication Testing
 - [ ] Test Google sign-in functionality
@@ -245,6 +245,14 @@ Your deployment is successful when:
   - Verify Spreadsheet ID is correct (long string from Google Sheets URL)
   - Check that user has proper permissions to access the spreadsheet
   - Test authentication by signing out and back in
+
+### Configuration Issues
+- **Issue**: "Error initializing your application, please check your google sheets configuration"
+- **Solutions**:
+  - Go to the setup page first: `https://yourusername.github.io/church_registration_app/config-setup.html`
+  - Don't try to use the main app before completing configuration
+  - Make sure you're using the OAuth Client ID (not Client Secret)
+  - Verify both OAuth Client ID and Spreadsheet ID are entered correctly
 
 ### Performance Issues
 - **Issue**: App loading slowly or not working offline

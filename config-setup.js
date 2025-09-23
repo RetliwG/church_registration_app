@@ -67,21 +67,28 @@ async function testAuthentication() {
     updateConnectionStatus('Testing OAuth authentication...', 'info');
     
     try {
-        // Initialize Google Auth
-        await gapi.load('auth2', async () => {
-            const authInstance = await gapi.auth2.init({
-                client_id: clientId,
-                scope: 'https://www.googleapis.com/auth/spreadsheets.readonly'
-            });
-            
-            // Attempt to sign in
-            const user = await authInstance.signIn();
-            
-            if (user.isSignedIn()) {
-                // Test access to the spreadsheet
-                await testSpreadsheetAccess(user.getAuthResponse().access_token, spreadsheetId);
-            }
-        });
+        // Temporarily store the config for testing
+        window.CONFIG = {
+            GOOGLE_OAUTH_CLIENT_ID: clientId,
+            GOOGLE_SPREADSHEET_ID: spreadsheetId,
+            OAUTH_SCOPES: 'https://www.googleapis.com/auth/spreadsheets'
+        };
+        
+        // Initialize OAuth manager
+        const oauth = new OAuthManager();
+        await oauth.initialize();
+        
+        // Attempt to sign in
+        const success = await oauth.signIn();
+        
+        if (success && oauth.isSignedIn()) {
+            // Test access to the spreadsheet
+            await testSpreadsheetAccess(oauth.getAccessToken(), spreadsheetId);
+            updateConnectionStatus('✅ Authentication successful! You can now save the configuration.', 'success');
+            document.getElementById('proceedToAppBtn').disabled = false;
+        } else {
+            updateConnectionStatus('❌ Authentication failed: Sign-in was not completed', 'error');
+        }
         
     } catch (error) {
         console.error('Authentication test failed:', error);

@@ -1,35 +1,37 @@
-// OAuth Authentication Manager for Google Sheets API
+// OAuth Authentication Manager for Google Sheets API - Updated for Google Identity Services (GIS)
 class OAuthManager {
     constructor() {
-        this.authInstance = null;
+        this.tokenClient = null;
+        this.accessToken = null;
         this.isInitialized = false;
         this.currentUser = null;
     }
 
     async initialize() {
         try {
-            // Load Google API if not already loaded
-            if (!window.gapi) {
-                await this.loadGoogleAPI();
-            }
+            // Wait for Google Identity Services to load
+            await this.waitForGoogleIdentityServices();
 
-            // Initialize OAuth
-            await new Promise((resolve, reject) => {
-                gapi.load('auth2', resolve);
-            });
-
-            this.authInstance = await gapi.auth2.init({
+            // Initialize the token client
+            this.tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: CONFIG.GOOGLE_OAUTH_CLIENT_ID,
-                scope: CONFIG.OAUTH_SCOPES
+                scope: CONFIG.OAUTH_SCOPES,
+                callback: (response) => {
+                    if (response.error) {
+                        console.error('OAuth error:', response.error);
+                        throw new Error(response.error);
+                    }
+                    this.accessToken = response.access_token;
+                    this.storeAuthToken(response);
+                }
             });
 
             this.isInitialized = true;
             console.log('OAuth Manager initialized successfully');
 
-            // Check if user is already signed in
-            if (this.authInstance.isSignedIn.get()) {
-                this.currentUser = this.authInstance.currentUser.get();
-                this.storeAuthToken();
+            // Check if we have a stored valid token
+            if (this.isTokenValid()) {
+                this.accessToken = localStorage.getItem('church_app_auth_token');
             }
 
         } catch (error) {
@@ -38,13 +40,19 @@ class OAuthManager {
         }
     }
 
-    loadGoogleAPI() {
+    waitForGoogleIdentityServices() {
         return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://apis.google.com/js/api.js';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
+            const checkGoogleLoaded = () => {
+                if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+                    resolve();
+                } else {
+                    setTimeout(checkGoogleLoaded, 100);
+                }
+            };
+            checkGoogleLoaded();
+            
+            // Timeout after 10 seconds
+            setTimeout(() => reject(new Error('Google Identity Services failed to load')), 10000);
         });
     }
 
@@ -54,19 +62,21 @@ class OAuthManager {
                 await this.initialize();
             }
 
-            showLoading();
-            this.currentUser = await this.authInstance.signIn();
-            
-            if (this.currentUser.isSignedIn()) {
-                this.storeAuthToken();
-                hideLoading();
-                return true;
-            }
-            
-            hideLoading();
-            return false;
+            return new Promise((resolve, reject) => {
+                this.tokenClient.callback = (response) => {
+                    if (response.error) {
+                        reject(new Error(response.error));
+                        return;
+                    }
+                    this.accessToken = response.access_token;
+                    this.storeAuthToken(response);
+                    this.currentUser = { signedIn: true };
+                    resolve(true);
+                };
+                
+                this.tokenClient.requestAccessToken();
+            });
         } catch (error) {
-            hideLoading();
             console.error('Sign-in failed:', error);
             throw error;
         }
@@ -74,8 +84,10 @@ class OAuthManager {
 
     async signOut() {
         try {
-            if (this.authInstance) {
-                await this.authInstance.signOut();
+            if (this.accessToken) {
+                // Revoke the token
+                google.accounts.oauth2.revoke(this.accessToken);
+                this.accessToken = null;
                 this.currentUser = null;
                 this.clearAuthToken();
                 return true;
@@ -88,37 +100,25 @@ class OAuthManager {
     }
 
     isSignedIn() {
-        return this.authInstance && this.authInstance.isSignedIn.get();
+        return !!this.accessToken && this.isTokenValid();
     }
 
     getAccessToken() {
-        if (this.currentUser && this.currentUser.isSignedIn()) {
-            return this.currentUser.getAuthResponse().access_token;
-        }
-        return null;
+        return this.accessToken;
     }
 
     getUserInfo() {
-        if (this.currentUser && this.currentUser.isSignedIn()) {
-            const profile = this.currentUser.getBasicProfile();
-            return {
-                id: profile.getId(),
-                name: profile.getName(),
-                email: profile.getEmail(),
-                imageUrl: profile.getImageUrl()
-            };
-        }
-        return null;
+        // Note: Google Identity Services doesn't provide user info directly
+        // We'll need to make a separate API call to get user details if needed
+        const storedInfo = localStorage.getItem('church_app_user_info');
+        return storedInfo ? JSON.parse(storedInfo) : null;
     }
 
-    storeAuthToken() {
-        if (this.currentUser) {
-            const authResponse = this.currentUser.getAuthResponse();
-            localStorage.setItem('church_app_auth_token', authResponse.access_token);
-            localStorage.setItem('church_app_auth_expires', authResponse.expires_at.toString());
-            
-            const userInfo = this.getUserInfo();
-            localStorage.setItem('church_app_user_info', JSON.stringify(userInfo));
+    storeAuthToken(response) {
+        if (response && response.access_token) {
+            const expiresAt = Date.now() + (response.expires_in * 1000);
+            localStorage.setItem('church_app_auth_token', response.access_token);
+            localStorage.setItem('church_app_auth_expires', expiresAt.toString());
         }
     }
 
@@ -140,12 +140,10 @@ class OAuthManager {
     }
 
     async refreshTokenIfNeeded() {
-        if (!this.isTokenValid() && this.isSignedIn()) {
+        if (!this.isTokenValid()) {
+            // With Google Identity Services, we need to request a new token
             try {
-                const user = this.authInstance.currentUser.get();
-                await user.reloadAuthResponse();
-                this.currentUser = user;
-                this.storeAuthToken();
+                await this.signIn();
                 return true;
             } catch (error) {
                 console.error('Token refresh failed:', error);
