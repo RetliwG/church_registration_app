@@ -1,7 +1,7 @@
 // Google Sheets API Integration with OAuth
 class GoogleSheetsAPI {
     constructor() {
-        this.spreadsheetId = CONFIG.GOOGLE_SPREADSHEET_ID;
+        this.spreadsheetId = CONFIG.SPREADSHEET_ID;
         this.baseUrl = 'https://sheets.googleapis.com/v4/spreadsheets';
         this.isOnline = navigator.onLine;
         
@@ -13,6 +13,7 @@ class GoogleSheetsAPI {
         // Wait for offline storage to be ready
         await this.initOfflineStorage();
         console.log('GoogleSheetsAPI initialized');
+        console.log('📊 Spreadsheet ID:', this.spreadsheetId);
     }
 
     async initOfflineStorage() {
