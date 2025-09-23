@@ -99,8 +99,8 @@ async function handleAPIRequest(request) {
         // Try network first
         const response = await fetch(request);
         
-        if (response.ok) {
-            // Cache successful API responses for offline use
+        if (response.ok && request.method === 'GET') {
+            // Only cache GET requests - PUT/POST requests cannot be cached
             const responseClone = response.clone();
             const cache = await caches.open(OFFLINE_CACHE);
             cache.put(request, responseClone);
@@ -110,11 +110,13 @@ async function handleAPIRequest(request) {
     } catch (error) {
         console.log('API request failed, checking cache...', error);
         
-        // If network fails, try to serve from cache
-        const cachedResponse = await caches.match(request);
-        if (cachedResponse) {
-            console.log('Serving API response from cache');
-            return cachedResponse;
+        // If network fails, try to serve from cache (only works for GET requests)
+        if (request.method === 'GET') {
+            const cachedResponse = await caches.match(request);
+            if (cachedResponse) {
+                console.log('Serving API response from cache');
+                return cachedResponse;
+            }
         }
         
         // If no cache available, store request for later sync

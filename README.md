@@ -186,6 +186,137 @@ Since you're already working with this GitHub repository, deploying with GitHub 
 3. Use the "Sign Out" button next to each child if needed
 4. Click "Refresh" to update the view
 
+## 🧪 Testing Checklist
+
+Use this comprehensive checklist to verify all app functionality after setup:
+
+### Initial Setup & Configuration
+- [ ] **Configuration Page Access**: Click ⚙️ settings button in header
+- [ ] **OAuth Client ID**: Enter Google OAuth Client ID and save successfully
+- [ ] **Spreadsheet ID**: Enter Google Sheets spreadsheet ID and save successfully
+- [ ] **Authentication Test**: Click "Test Authentication" and verify Google login works
+- [ ] **Redirect to Main App**: Click "Go to Main Application" and verify it loads the updated app
+
+### Authentication & Security
+- [ ] **Google Login**: Successfully sign in with Google account
+- [ ] **Token Persistence**: Refresh page and verify still signed in (no re-login required)
+- [ ] **User Info Display**: Verify user name appears in header after login
+- [ ] **Sign Out**: Click "Sign Out" button and verify successful logout
+- [ ] **Protected Access**: Verify app requires login when signed out
+
+### Parent Registration
+- [ ] **Parent Form**: Fill out all parent fields (Name, Phone 1, Phone 2, Email, Address)
+- [ ] **Required Validation**: Leave required fields empty and verify validation errors
+- [ ] **Data Persistence**: Complete parent registration and verify data saves
+- [ ] **Google Sheets Integration**: Check your Google Sheets "Parents" tab for new row
+- [ ] **Clear Form**: Verify form clears after successful submission
+
+### Child Registration
+- [ ] **Add Child Button**: Click "Add Child" and verify new child form appears
+- [ ] **Multiple Children**: Add 2-3 children to test multiple child handling
+- [ ] **Child Form Fields**: Fill out First Name, Last Name, Date of Birth, Gender, Media Consent, Other Info
+- [ ] **Age Calculation**: Verify age is calculated automatically from date of birth
+- [ ] **Remove Child**: Use "Remove" button to delete a child form
+- [ ] **Child Data Saving**: Submit registration and verify children appear in "Children" sheet
+- [ ] **Parent-Child Linking**: Verify children are properly linked to parent in spreadsheet
+
+### Sign In/Out Functionality
+- [ ] **Search Functionality**: Navigate to "Sign In/Out" tab and test child name search
+- [ ] **Live Search**: Verify search suggestions appear as you type
+- [ ] **Child Selection**: Select one or more children from search results
+- [ ] **Sign In Process**: Click "Sign In Selected" and verify success message
+- [ ] **Sign Out Process**: Select signed-in children and click "Sign Out Selected"
+- [ ] **Data Recording**: Check "SignInOut" sheet for new attendance records
+- [ ] **Timestamp Accuracy**: Verify sign-in/out timestamps are correct
+
+### Attendance Tracking
+- [ ] **Current Attendance View**: Navigate to "Current Attendance" tab
+- [ ] **Real-time Updates**: Verify signed-in children appear in the list
+- [ ] **Child Information**: Check that parent contact info is displayed
+- [ ] **Individual Sign Out**: Use "Sign Out" button next to specific children
+- [ ] **Refresh Functionality**: Click "Refresh" and verify data updates
+- [ ] **Empty State**: When no children are signed in, verify appropriate message displays
+
+### Progressive Web App (PWA) Features
+- [ ] **Installation Prompt**: On iPad Safari, verify "Add to Home Screen" option available
+- [ ] **App Installation**: Install app to home screen and verify it opens independently
+- [ ] **App Icon**: Verify correct icon appears on home screen
+- [ ] **Standalone Mode**: Confirm installed app opens without browser UI
+- [ ] **App Updates**: Make a change, deploy, and verify app updates
+
+### Offline Functionality
+- [ ] **Network Detection**: Verify network status indicator appears
+- [ ] **Offline Registration**: Disconnect internet, register family, verify data saves locally
+- [ ] **Offline Sign In/Out**: Test attendance tracking without internet connection
+- [ ] **Sync on Reconnect**: Reconnect internet and verify offline data syncs to Google Sheets
+- [ ] **Background Sync**: Verify data syncs automatically when connection restored
+
+### User Interface & Experience
+- [ ] **Responsive Design**: Test on different screen sizes (especially iPad)
+- [ ] **Navigation**: Test all navigation buttons and section switching
+- [ ] **Form Validation**: Test all form validation messages and error states
+- [ ] **Loading States**: Verify loading indicators appear during operations
+- [ ] **Success Messages**: Confirm appropriate success messages display
+- [ ] **Error Handling**: Test error scenarios and verify user-friendly error messages
+
+### Data Accuracy & Integrity
+- [ ] **Parent Data**: Verify all parent information appears correctly in Google Sheets
+- [ ] **Child Data**: Confirm all child details are accurately recorded
+- [ ] **Timestamps**: Check that all timestamps are in correct timezone
+- [ ] **Data Relationships**: Verify parent-child relationships are maintained
+- [ ] **No Duplicate Entries**: Confirm no duplicate records are created
+- [ ] **Special Characters**: Test names with apostrophes, hyphens, and international characters
+
+### Performance & Reliability
+- [ ] **Load Time**: Verify app loads quickly (under 3 seconds)
+- [ ] **Large Datasets**: Test with 20+ families to verify performance
+- [ ] **Memory Usage**: Monitor for memory leaks during extended use
+- [ ] **Cache Performance**: Test app performance after cache clearing
+- [ ] **Concurrent Usage**: Test multiple users accessing simultaneously
+
+### Security Testing
+- [ ] **HTTPS Access**: Verify site loads over HTTPS (check for lock icon)
+- [ ] **Token Security**: Verify OAuth tokens are not exposed in URLs
+- [ ] **API Key Protection**: Confirm API calls work without exposing credentials
+- [ ] **Data Privacy**: Test that only authorized users can access data
+- [ ] **Session Management**: Verify sessions expire appropriately
+
+### Browser Compatibility
+- [ ] **Safari on iPad**: Full functionality testing on primary target device
+- [ ] **Safari on iPhone**: Mobile responsiveness and functionality
+- [ ] **Chrome Desktop**: Complete feature testing
+- [ ] **Chrome Mobile**: Mobile-specific testing
+- [ ] **Firefox**: Cross-browser compatibility verification
+
+### Error Recovery
+- [ ] **Network Interruption**: Test what happens when internet cuts out mid-operation
+- [ ] **Invalid Data**: Test form submission with invalid data formats
+- [ ] **API Failures**: Test behavior when Google Sheets API is temporarily unavailable
+- [ ] **Cache Corruption**: Clear all caches and verify app recovers gracefully
+- [ ] **Configuration Reset**: Test reconfiguration process if settings are lost
+
+### Final Verification
+- [ ] **End-to-End Workflow**: Complete full registration → sign-in → attendance tracking workflow
+- [ ] **Data Verification**: Cross-check all data in Google Sheets matches app displays
+- [ ] **User Experience**: Have someone unfamiliar test the app for usability
+- [ ] **Production Readiness**: Verify app is ready for actual church use
+- [ ] **Backup Plan**: Document rollback procedure if issues arise
+
+### Notes Section
+```
+Test Date: ___________
+Tested By: ___________
+Issues Found: 
+_________________________
+_________________________
+_________________________
+
+Actions Needed:
+_________________________
+_________________________
+_________________________
+```
+
 ## Browser Support
 
 - Safari (iOS/macOS)

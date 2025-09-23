@@ -134,7 +134,7 @@ function updateConnectionStatus(message, type) {
 function proceedToApp() {
     // Redirect to the main application with cache-busting parameter
     const timestamp = Date.now();
-    window.location.href = `index.html?v=8&t=${timestamp}`;
+    window.location.href = `index.html?v=9&t=${timestamp}`;
 }
 
 // Add CSS for connection status

@@ -80,7 +80,7 @@ async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
             // Add cache-busting parameter to service worker
-            const swUrl = '/church_registration_app/sw.js?v=7&t=' + Date.now();
+            const swUrl = '/church_registration_app/sw.js?v=8&t=' + Date.now();
             const registration = await navigator.serviceWorker.register(swUrl);
             console.log('Service Worker registered successfully:', registration);
             
@@ -538,11 +538,30 @@ async function signInSelectedChildren() {
     try {
         showLoading();
         
-        const promises = selectedChildren.map(child => dataManager.signInChild(child.id));
-        await Promise.all(promises);
+        console.log(`🔄 Signing in ${selectedChildren.length} children...`);
+        
+        // Process children sequentially to avoid race conditions with Google Sheets API
+        let successCount = 0;
+        for (const child of selectedChildren) {
+            try {
+                console.log(`📝 Signing in: ${child.firstName} ${child.lastName} (ID: ${child.id})`);
+                await dataManager.signInChild(child.id);
+                successCount++;
+                console.log(`✅ Successfully signed in: ${child.firstName} ${child.lastName}`);
+            } catch (error) {
+                console.error(`❌ Failed to sign in ${child.firstName} ${child.lastName}:`, error);
+            }
+        }
         
         hideLoading();
-        showMessage(`Successfully signed in ${selectedChildren.length} children.`, 'success');
+        
+        if (successCount === selectedChildren.length) {
+            showMessage(`Successfully signed in all ${selectedChildren.length} children.`, 'success');
+        } else if (successCount > 0) {
+            showMessage(`Signed in ${successCount} of ${selectedChildren.length} children. Some may have failed.`, 'warning');
+        } else {
+            showMessage('Failed to sign in any children. Please try again.', 'error');
+        }
         
         // Clear selection
         selectedChildren = [];
@@ -569,11 +588,30 @@ async function signOutSelectedChildren() {
     try {
         showLoading();
         
-        const promises = selectedChildren.map(child => dataManager.signOutChild(child.id));
-        await Promise.all(promises);
+        console.log(`🔄 Signing out ${selectedChildren.length} children...`);
+        
+        // Process children sequentially to avoid race conditions with Google Sheets API
+        let successCount = 0;
+        for (const child of selectedChildren) {
+            try {
+                console.log(`📝 Signing out: ${child.firstName} ${child.lastName} (ID: ${child.id})`);
+                await dataManager.signOutChild(child.id);
+                successCount++;
+                console.log(`✅ Successfully signed out: ${child.firstName} ${child.lastName}`);
+            } catch (error) {
+                console.error(`❌ Failed to sign out ${child.firstName} ${child.lastName}:`, error);
+            }
+        }
         
         hideLoading();
-        showMessage(`Successfully signed out ${selectedChildren.length} children.`, 'success');
+        
+        if (successCount === selectedChildren.length) {
+            showMessage(`Successfully signed out all ${selectedChildren.length} children.`, 'success');
+        } else if (successCount > 0) {
+            showMessage(`Signed out ${successCount} of ${selectedChildren.length} children. Some may have failed.`, 'warning');
+        } else {
+            showMessage('Failed to sign out any children. Please try again.', 'error');
+        }
         
         // Clear selection
         selectedChildren = [];
