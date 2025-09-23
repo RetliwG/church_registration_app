@@ -627,6 +627,8 @@ function showMessage(message, type = 'info') {
 
 // Authentication functions
 function showAuthenticationRequired() {
+    console.log('Showing authentication required screen');
+    
     const authHtml = `
         <div class="auth-required">
             <h2>Authentication Required</h2>
@@ -638,10 +640,13 @@ function showAuthenticationRequired() {
     
     // Hide all sections first
     const sections = document.querySelectorAll('.section');
+    console.log('Found sections:', sections.length);
     sections.forEach(section => section.style.display = 'none');
     
     // Find the container and add auth content
     const container = document.querySelector('.container');
+    console.log('Found container:', container);
+    
     if (container) {
         // Create a temporary div for auth content
         let authDiv = document.getElementById('authContent');
@@ -650,10 +655,34 @@ function showAuthenticationRequired() {
             authDiv.id = 'authContent';
             container.appendChild(authDiv);
         }
+        
+        console.log('Setting auth content');
         authDiv.innerHTML = authHtml;
-        document.getElementById('signInButton').addEventListener('click', handleSignIn);
+        
+        // Add event listener with error handling
+        const signInButton = document.getElementById('signInButton');
+        if (signInButton) {
+            signInButton.addEventListener('click', handleSignIn);
+            console.log('Sign in button event listener added');
+        } else {
+            console.error('Sign in button not found after setting innerHTML');
+        }
     } else {
         console.error('Could not find container element for authentication');
+        // Fallback: try to use body
+        const body = document.body;
+        if (body) {
+            console.log('Using body as fallback');
+            const authDiv = document.createElement('div');
+            authDiv.id = 'authContent';
+            authDiv.innerHTML = authHtml;
+            body.appendChild(authDiv);
+            
+            const signInButton = document.getElementById('signInButton');
+            if (signInButton) {
+                signInButton.addEventListener('click', handleSignIn);
+            }
+        }
     }
 }
 
