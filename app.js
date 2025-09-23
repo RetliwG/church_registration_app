@@ -636,8 +636,25 @@ function showAuthenticationRequired() {
         </div>
     `;
     
-    document.getElementById('mainContent').innerHTML = authHtml;
-    document.getElementById('signInButton').addEventListener('click', handleSignIn);
+    // Hide all sections first
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => section.style.display = 'none');
+    
+    // Find the container and add auth content
+    const container = document.querySelector('.container');
+    if (container) {
+        // Create a temporary div for auth content
+        let authDiv = document.getElementById('authContent');
+        if (!authDiv) {
+            authDiv = document.createElement('div');
+            authDiv.id = 'authContent';
+            container.appendChild(authDiv);
+        }
+        authDiv.innerHTML = authHtml;
+        document.getElementById('signInButton').addEventListener('click', handleSignIn);
+    } else {
+        console.error('Could not find container element for authentication');
+    }
 }
 
 async function handleSignIn() {
@@ -647,6 +664,17 @@ async function handleSignIn() {
         
         if (success) {
             showMessage('Signed in successfully!', 'success');
+            
+            // Remove auth content and restore sections
+            const authDiv = document.getElementById('authContent');
+            if (authDiv) {
+                authDiv.remove();
+            }
+            
+            // Show all sections again
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.style.display = 'block');
+            
             // Reinitialize the app
             await initializeApp();
         } else {
