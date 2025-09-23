@@ -66,9 +66,19 @@ async function initializeApp() {
         showLoading();
         
         // Check if configuration is complete
+        console.log('Configuration check:', {
+            clientId: CONFIG.GOOGLE_OAUTH_CLIENT_ID,
+            spreadsheetId: CONFIG.SPREADSHEET_ID,
+            isConfigured: CONFIG.isConfigured()
+        });
+        
         if (!CONFIG.isConfigured()) {
             hideLoading();
-            showMessage('Configuration required. Redirecting to setup...', 'info');
+            const missing = [];
+            if (CONFIG.GOOGLE_OAUTH_CLIENT_ID === 'NOT_CONFIGURED') missing.push('OAuth Client ID');
+            if (CONFIG.SPREADSHEET_ID === 'NOT_CONFIGURED') missing.push('Spreadsheet ID');
+            
+            showMessage(`Configuration incomplete. Missing: ${missing.join(', ')}. Redirecting to setup...`, 'info');
             setTimeout(() => {
                 window.location.href = 'config-setup.html';
             }, 2000);
