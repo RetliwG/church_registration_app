@@ -310,19 +310,31 @@ class DataManager {
             }));
 
             // Parse sign-ins (skip header row)
-            this.cache.signins = signinData.slice(1).map((row, index) => ({
-                id: index + 2, // Row number in sheet
-                signInTimestamp: row[0] || '',
-                signOutTimestamp: row[1] || '',
-                childId: parseInt(row[2]) || 0,
-                parentId: parseInt(row[3]) || 0,
-                childFullName: row[4] || '',
-                date: row[5] || ''
-            }));
+            console.log('📊 Raw signin data from sheets:', signinData);
+            this.cache.signins = signinData.slice(1).map((row, index) => {
+                const parsed = {
+                    id: index + 2, // Row number in sheet
+                    signInTimestamp: row[0] || '',
+                    signOutTimestamp: row[1] || '',
+                    childId: parseInt(row[2]) || 0,
+                    parentId: parseInt(row[3]) || 0,
+                    childFullName: row[4] || '',
+                    date: row[5] || ''
+                };
+                console.log(`📊 Parsed signin row ${index + 2}:`, parsed);
+                return parsed;
+            });
 
             this.lastCacheUpdate = new Date();
             hideLoading();
             console.log('Cache refreshed successfully');
+            console.log('📊 Cache contents:', {
+                parents: this.cache.parents.length,
+                children: this.cache.children.length,
+                signins: this.cache.signins.length
+            });
+            console.log('📅 Today\'s sign-ins:', this.cache.signins.filter(s => s.date === new Date().toLocaleDateString()));
+            console.log('✅ Currently signed in:', this.getCurrentlySignedIn());
         } catch (error) {
             hideLoading();
             console.error('Error refreshing cache:', error);
@@ -447,6 +459,9 @@ class DataManager {
             const timestamp = now.toLocaleString();
             const date = now.toLocaleDateString();
 
+            console.log('📝 Signing in child with date format:', date);
+            console.log('📝 Current timestamp:', timestamp);
+
             const row = [
                 timestamp,
                 '', // Sign out timestamp (empty for now)
@@ -524,11 +539,18 @@ class DataManager {
 
     getCurrentlySignedIn() {
         const today = new Date().toLocaleDateString();
-        return this.cache.signins.filter(record => 
-            record.date === today && 
+        console.log('🔍 Getting currently signed in for date:', today);
+        
+        const todaysSignins = this.cache.signins.filter(record => record.date === today);
+        console.log('🔍 Today\'s sign-ins found:', todaysSignins);
+        
+        const currentlySignedIn = todaysSignins.filter(record => 
             record.signInTimestamp && 
             !record.signOutTimestamp
         );
+        console.log('🔍 Currently signed in (filtered):', currentlySignedIn);
+        
+        return currentlySignedIn;
     }
 
     searchChildren(query) {
