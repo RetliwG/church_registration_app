@@ -296,8 +296,8 @@ function showSection(sectionName) {
     if (targetSection) {
         targetSection.classList.add('active');
         
-        // Refresh cache when switching to sign-in section to ensure new registrations appear
-        if (sectionName === 'signin') {
+        // Refresh cache when switching to sign-in section to ensure new registrations appear (only if authenticated)
+        if (sectionName === 'signin' && dataManager) {
             dataManager.refreshCacheIfNeeded().catch(error => {
                 console.error('Error refreshing cache for sign-in section:', error);
             });
@@ -321,8 +321,8 @@ function showSection(sectionName) {
         event.target.classList.add('active');
     }
     
-    // Refresh data if viewing attendance
-    if (sectionName === 'attendance') {
+    // Refresh data if viewing attendance (only if authenticated)
+    if (sectionName === 'attendance' && dataManager) {
         refreshAttendanceView();
     }
 }
@@ -693,6 +693,12 @@ async function signOutSelectedChildren() {
 // Attendance functionality
 async function refreshAttendanceView() {
     try {
+        // Check if dataManager is available (user is authenticated)
+        if (!dataManager) {
+            console.warn('Cannot refresh attendance: user not authenticated');
+            return;
+        }
+        
         showLoading();
         
         await dataManager.refreshCacheIfNeeded(true); // Force refresh for attendance view
