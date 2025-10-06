@@ -2,6 +2,12 @@
 
 A Progressive Web App for managing church youth registration and attendance tracking with offline capabilities and secure Google Sheets integration.
 
+## 📊 Application Workflow
+
+![Application Workflow](workflow-diagram.mermaid)
+
+View the complete application flow diagram: [workflow-diagram.mermaid](workflow-diagram.mermaid)
+
 ## 🌟 Features
 
 - **📱 Installable App**: Works like a native app on iPad - install from home screen

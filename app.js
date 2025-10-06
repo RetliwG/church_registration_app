@@ -209,7 +209,6 @@ function setupEventListeners() {
 
     // Attendance
     document.getElementById('refreshAttendanceBtn').addEventListener('click', refreshAttendanceView);
-    document.getElementById('syncDataBtn').addEventListener('click', syncDataFromGoogleSheets);
 
     // Network status listeners for PWA
     window.addEventListener('online', handleOnlineStatus);
@@ -313,6 +312,14 @@ function showSection(sectionName) {
     if (targetSection) {
         targetSection.classList.add('active');
         console.log(`✅ Showing section: ${sectionName}`);
+        
+        // Refresh cache when switching to sign-in section to ensure new registrations appear
+        if (sectionName === 'signin') {
+            console.log('🔄 Refreshing cache for sign-in section to load latest registrations...');
+            dataManager.refreshCache().catch(error => {
+                console.error('Error refreshing cache for sign-in section:', error);
+            });
+        }
         
         // Force display on mobile if needed
         if (window.innerWidth <= 768) {
@@ -777,30 +784,6 @@ async function signOutFromAttendance(childId) {
         hideLoading();
         console.error('Error signing out child:', error);
         showMessage('Error signing out child. Please try again.', 'error');
-    }
-}
-
-async function syncDataFromGoogleSheets() {
-    try {
-        showLoading();
-        
-        console.log('🔄 Manual sync requested - refreshing cache from Google Sheets...');
-        await dataManager.refreshCache();
-        
-        // Update attendance view if currently visible
-        if (document.getElementById('attendance').classList.contains('active')) {
-            const currentlySignedIn = dataManager.getCurrentlySignedIn();
-            updateAttendanceTable(currentlySignedIn);
-            updateAttendanceCount(currentlySignedIn.length);
-        }
-        
-        hideLoading();
-        showMessage('Data synced successfully with Google Sheets!', 'success');
-        
-    } catch (error) {
-        hideLoading();
-        console.error('Error syncing data:', error);
-        showMessage('Error syncing data. Please check your connection and try again.', 'error');
     }
 }
 

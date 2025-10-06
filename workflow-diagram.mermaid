@@ -1,0 +1,127 @@
+flowchart TD
+    Start([User Opens App]) --> CacheBust{Cache Busting?}
+    CacheBust -->|v15 Parameters| ClearCache[Clear Cache & Show Version Indicator]
+    CacheBust -->|No Parameters| ConfigCheck
+    ClearCache --> ConfigCheck
+    
+    ConfigCheck{Configuration<br/>Complete?} 
+    ConfigCheck -->|Missing Config| ShowConfigScreen[Show Configuration Required Screen]
+    ShowConfigScreen --> ConfigSetup[Redirect to config-setup.html]
+    ConfigSetup --> ConfigureOAuth[Configure OAuth Client ID & Spreadsheet ID]
+    ConfigureOAuth --> TestAuth[Test Authentication]
+    TestAuth --> SaveConfig[Save to localStorage]
+    SaveConfig --> BackToApp[Return to Main App]
+    BackToApp --> ConfigCheck
+    
+    ConfigCheck -->|Config OK| AuthCheck{User<br/>Authenticated?}
+    AuthCheck -->|No| ShowAuthScreen[Show Authentication Required Screen]
+    ShowAuthScreen --> GoogleSignIn[Google OAuth Sign-In]
+    GoogleSignIn --> AuthSuccess{Sign-In<br/>Success?}
+    AuthSuccess -->|Failed| ShowAuthScreen
+    AuthSuccess -->|Success| InitializeApp
+    
+    AuthCheck -->|Yes| InitializeApp[Initialize Application]
+    InitializeApp --> InitOAuth[Initialize OAuth Manager]
+    InitOAuth --> InitDataManager[Initialize Data Manager]
+    InitDataManager --> SetupSheets[Setup Google Sheets Headers]
+    SetupSheets --> LoadCache[Load Initial Cache]
+    LoadCache --> ShowMainApp[Show Main Application]
+    
+    ShowMainApp --> Navigation{User Navigation}
+    
+    Navigation --> Registration[Registration Section]
+    Registration --> AddParent[Fill Parent Information]
+    AddParent --> AddChildren[Add Children Forms]
+    AddChildren --> SaveReg[Save Registration]
+    SaveReg --> SendToSheets[Send Data to Google Sheets]
+    SendToSheets --> RefreshCache[Refresh Cache]
+    RefreshCache --> ShowSuccess[Show Success Message]
+    ShowSuccess --> Navigation
+    
+    Navigation --> SignInOut[Sign In/Out Section]
+    SignInOut --> AutoRefresh[Auto-refresh Cache for Latest Registrations]
+    AutoRefresh --> SearchChild[Search for Child]
+    SearchChild --> SelectChild[Select Children]
+    SelectChild --> SignInAction{Sign In or<br/>Sign Out?}
+    SignInAction -->|Sign In| ProcessSignIn[Process Sign-In Sequentially]
+    SignInAction -->|Sign Out| ProcessSignOut[Process Sign-Out Sequentially]
+    ProcessSignIn --> UpdateSheets[Update Google Sheets]
+    ProcessSignOut --> UpdateSheets
+    UpdateSheets --> RefreshAttendance[Refresh Attendance View]
+    RefreshAttendance --> Navigation
+    
+    Navigation --> Attendance[Attendance Section]
+    Attendance --> ManualRefresh[Manual Refresh Button]
+    ManualRefresh --> FetchFromSheets[Fetch Data from Google Sheets]
+    FetchFromSheets --> FilterToday[Filter Today's Sign-ins with Date Normalization]
+    FilterToday --> ShowCurrentAttendance[Display Currently Signed-In Children]
+    ShowCurrentAttendance --> IndividualSignOut[Individual Sign-Out Options]
+    IndividualSignOut --> UpdateSheets
+    ShowCurrentAttendance --> Navigation
+    
+    subgraph OfflineHandling ["Offline Handling"]
+        NetworkCheck{Network Status}
+        NetworkCheck -->|Online| NormalOperation[Normal Operation]
+        NetworkCheck -->|Offline| StoreLocal[Store in IndexedDB]
+        StoreLocal --> ShowOfflineMsg[Show Offline Message]
+        ShowOfflineMsg --> BackOnline{Back Online?}
+        BackOnline -->|Yes| BackgroundSync[Background Sync]
+        BackgroundSync --> SyncToSheets[Sync to Google Sheets]
+        SyncToSheets --> NormalOperation
+        BackOnline -->|No| StoreLocal
+    end
+    
+    subgraph DataFlow ["Data Synchronization"]
+        GoogleSheets[(Google Sheets<br/>Private Spreadsheet)]
+        ParentsSheet[Parents Sheet]
+        ChildrenSheet[Children Sheet] 
+        SignInOutSheet[SignInOut Sheet]
+        GoogleSheets --> ParentsSheet
+        GoogleSheets --> ChildrenSheet
+        GoogleSheets --> SignInOutSheet
+        
+        LocalCache[(Local Cache<br/>In Memory)]
+        ParentsSheet --> LocalCache
+        ChildrenSheet --> LocalCache
+        SignInOutSheet --> LocalCache
+        
+        DateNormalization[Date Normalization<br/>06/10/2025 → 6/10/2025]
+        LocalCache --> DateNormalization
+        DateNormalization --> CrossDeviceSync[Cross-Device Compatibility]
+    end
+    
+    subgraph PWAFeatures ["PWA Features"]
+        ServiceWorker[Service Worker Registration]
+        OfflineCache[Offline Caching]
+        InstallPrompt[Install to Home Screen]
+        PushNotifications[Background Sync Notifications]
+        ServiceWorker --> OfflineCache
+        ServiceWorker --> PushNotifications
+    end
+    
+    subgraph ErrorHandling ["Error Handling"]
+        ErrorCatch{Error Occurred?}
+        ErrorCatch -->|Auth Error| RedirectConfig[Redirect to Configuration]
+        ErrorCatch -->|Network Error| ShowRetry[Show Retry Message]
+        ErrorCatch -->|API Error| ShowErrorMsg[Show Error Message]
+        ShowRetry --> NetworkCheck
+        ShowErrorMsg --> Navigation
+        RedirectConfig --> ConfigSetup
+    end
+    
+    SendToSheets -.-> OfflineHandling
+    UpdateSheets -.-> OfflineHandling
+    FetchFromSheets -.-> OfflineHandling
+    InitializeApp -.-> PWAFeatures
+    
+    classDef startEnd fill:#e1f5fe,stroke:#01579b,stroke-width:3px,color:#000
+    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef dataStore fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef userAction fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    
+    class Start,ShowMainApp startEnd
+    class InitializeApp,ProcessSignIn,ProcessSignOut,SendToSheets,UpdateSheets process
+    class ConfigCheck,AuthCheck,AuthSuccess,NetworkCheck,ErrorCatch decision
+    class GoogleSheets,LocalCache,ParentsSheet,ChildrenSheet,SignInOutSheet dataStore
+    class Registration,SignInOut,Attendance,SaveReg,SearchChild,ManualRefresh userAction
