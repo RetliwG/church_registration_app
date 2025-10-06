@@ -6,8 +6,6 @@ function handleCacheBusting() {
     
     // If we have version parameters, clear them from URL for clean navigation
     if (version || timestamp) {
-        console.log(`🚀 App loaded with version ${version}, timestamp ${timestamp}`);
-        console.log('🔄 Cache busting activated - loading fresh resources');
         
         // Clear the URL parameters without reloading
         const cleanUrl = window.location.origin + window.location.pathname;
@@ -18,7 +16,6 @@ function handleCacheBusting() {
             caches.keys().then(cacheNames => {
                 return Promise.all(
                     cacheNames.map(cacheName => {
-                        console.log('🧹 Clearing cache:', cacheName);
                         return caches.delete(cacheName);
                     })
                 );
@@ -48,11 +45,6 @@ function handleCacheBusting() {
         }
     }
     
-    // Also log the current script versions for debugging
-    console.log('📦 Script versions loaded:');
-    document.querySelectorAll('script[src]').forEach(script => {
-        console.log(`  - ${script.src}`);
-    });
 }
 
 // Main application logic
@@ -85,7 +77,6 @@ async function registerServiceWorker() {
             // Add cache-busting parameter to service worker
             const swUrl = '/church_registration_app/sw.js?v=8&t=' + Date.now();
             const registration = await navigator.serviceWorker.register(swUrl);
-            console.log('Service Worker registered successfully:', registration);
             
             // Force update immediately
             await registration.update();
@@ -134,11 +125,6 @@ async function initializeApp() {
         showLoading();
         
         // Check if configuration is complete
-        console.log('Configuration check:', {
-            clientId: CONFIG.GOOGLE_OAUTH_CLIENT_ID,
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            isConfigured: CONFIG.isConfigured()
-        });
         
         if (!CONFIG.isConfigured()) {
             hideLoading();
@@ -294,12 +280,10 @@ function getOrCreateNetworkStatusIndicator() {
 
 // Navigation
 function showSection(sectionName) {
-    console.log(`📱 Switching to section: ${sectionName}`);
     
     // Hide all sections
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
-        console.log(`🔄 Hiding section: ${section.id}`);
     });
     
     // Remove active class from all nav buttons
@@ -311,11 +295,9 @@ function showSection(sectionName) {
     const targetSection = document.getElementById(sectionName);
     if (targetSection) {
         targetSection.classList.add('active');
-        console.log(`✅ Showing section: ${sectionName}`);
         
         // Refresh cache when switching to sign-in section to ensure new registrations appear
         if (sectionName === 'signin') {
-            console.log('🔄 Refreshing cache for sign-in section to load latest registrations...');
             dataManager.refreshCache().catch(error => {
                 console.error('Error refreshing cache for sign-in section:', error);
             });
@@ -323,7 +305,6 @@ function showSection(sectionName) {
         
         // Force display on mobile if needed
         if (window.innerWidth <= 768) {
-            console.log('📱 Mobile device detected, forcing section display');
             // Hide all sections explicitly
             document.querySelectorAll('.section').forEach(section => {
                 section.style.display = 'none';
@@ -351,18 +332,14 @@ function openConfiguration() {
 }
 
 function initializeMobileHandling() {
-    console.log('📱 Initializing mobile handling...');
     
     // Check if on mobile device
     const isMobile = window.innerWidth <= 768;
-    console.log(`📱 Mobile device: ${isMobile}, Width: ${window.innerWidth}px`);
     
     if (isMobile) {
         // Ensure only the active section is visible on mobile
         const activeSection = document.querySelector('.section.active');
         const allSections = document.querySelectorAll('.section');
-        
-        console.log(`📱 Found ${allSections.length} sections, active: ${activeSection?.id || 'none'}`);
         
         // Hide all sections first
         allSections.forEach(section => {
@@ -375,7 +352,6 @@ function initializeMobileHandling() {
         if (registrationSection) {
             registrationSection.style.display = 'block';
             registrationSection.classList.add('active');
-            console.log('📱 Set registration section as active for mobile');
         }
         
         // Update nav button states
@@ -392,7 +368,6 @@ function initializeMobileHandling() {
     // Listen for orientation changes
     window.addEventListener('orientationchange', () => {
         setTimeout(() => {
-            console.log('📱 Orientation changed, reinitializing mobile handling');
             initializeMobileHandling();
         }, 100);
     });
@@ -401,7 +376,6 @@ function initializeMobileHandling() {
     window.addEventListener('resize', () => {
         const isMobileNow = window.innerWidth <= 768;
         if (isMobileNow !== isMobile) {
-            console.log('📱 Screen size changed, reinitializing mobile handling');
             initializeMobileHandling();
         }
     });
@@ -628,16 +602,13 @@ async function signInSelectedChildren() {
     try {
         showLoading();
         
-        console.log(`🔄 Signing in ${selectedChildren.length} children...`);
         
         // Process children sequentially to avoid race conditions with Google Sheets API
         let successCount = 0;
         for (const child of selectedChildren) {
             try {
-                console.log(`📝 Signing in: ${child.firstName} ${child.lastName} (ID: ${child.id})`);
                 await dataManager.signInChild(child.id);
                 successCount++;
-                console.log(`✅ Successfully signed in: ${child.firstName} ${child.lastName}`);
             } catch (error) {
                 console.error(`❌ Failed to sign in ${child.firstName} ${child.lastName}:`, error);
             }

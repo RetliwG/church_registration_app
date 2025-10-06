@@ -12,8 +12,6 @@ class GoogleSheetsAPI {
     async initialize() {
         // Wait for offline storage to be ready
         await this.initOfflineStorage();
-        console.log('GoogleSheetsAPI initialized');
-        console.log('📊 Spreadsheet ID:', this.spreadsheetId);
     }
 
     async initOfflineStorage() {
@@ -308,9 +306,8 @@ class DataManager {
             }));
 
             // Parse sign-ins (skip header row)
-            console.log('📊 Raw signin data from sheets:', signinData);
             this.cache.signins = signinData.slice(1).map((row, index) => {
-                const parsed = {
+                return {
                     id: index + 2, // Row number in sheet
                     signInTimestamp: row[0] || '',
                     signOutTimestamp: row[1] || '',
@@ -319,18 +316,10 @@ class DataManager {
                     childFullName: row[4] || '',
                     date: row[5] || ''
                 };
-                console.log(`📊 Parsed signin row ${index + 2}:`, parsed);
-                return parsed;
             });
 
             this.lastCacheUpdate = new Date();
             hideLoading();
-            console.log('Cache refreshed successfully');
-            console.log('📊 Cache contents:', {
-                parents: this.cache.parents.length,
-                children: this.cache.children.length,
-                signins: this.cache.signins.length
-            });
             
             // Use normalized date comparison for logging today's sign-ins
             const today = new Date().toLocaleDateString();
@@ -344,9 +333,6 @@ class DataManager {
             };
             const normalizedToday = normalizeDate(today);
             const todaysSignins = this.cache.signins.filter(s => normalizeDate(s.date) === normalizedToday);
-            
-            console.log('📅 Today\'s sign-ins:', todaysSignins);
-            console.log('✅ Currently signed in:', this.getCurrentlySignedIn());
         } catch (error) {
             hideLoading();
             console.error('Error refreshing cache:', error);
@@ -435,9 +421,6 @@ class DataManager {
             const timestamp = now.toLocaleString();
             const date = now.toLocaleDateString();
 
-            console.log('📝 Signing in child with date format:', date);
-            console.log('📝 Current timestamp:', timestamp);
-
             const row = [
                 timestamp,
                 '', // Sign out timestamp (empty for now)
@@ -515,7 +498,6 @@ class DataManager {
 
     getCurrentlySignedIn() {
         const today = new Date().toLocaleDateString();
-        console.log('🔍 Getting currently signed in for date:', today);
         
         // Normalize date for comparison - remove leading zeros and ensure consistent format
         const normalizeDate = (dateStr) => {
@@ -529,21 +511,16 @@ class DataManager {
         };
         
         const normalizedToday = normalizeDate(today);
-        console.log('🔍 Normalized today date:', normalizedToday);
         
         const todaysSignins = this.cache.signins.filter(record => {
             const normalizedRecordDate = normalizeDate(record.date);
-            const matches = normalizedRecordDate === normalizedToday;
-            console.log(`🔍 Comparing "${normalizedRecordDate}" vs "${normalizedToday}": ${matches}`);
-            return matches;
+            return normalizedRecordDate === normalizedToday;
         });
-        console.log('🔍 Today\'s sign-ins found:', todaysSignins);
         
         const currentlySignedIn = todaysSignins.filter(record => 
             record.signInTimestamp && 
             !record.signOutTimestamp
         );
-        console.log('🔍 Currently signed in (filtered):', currentlySignedIn);
         
         return currentlySignedIn;
     }
