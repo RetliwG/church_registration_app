@@ -17,11 +17,9 @@ const STATIC_FILES = [
 
 // Install event - cache static files
 self.addEventListener('install', event => {
-    console.log('Service Worker installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Caching static files');
                 return cache.addAll(STATIC_FILES);
             })
             .then(() => {
@@ -32,13 +30,11 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-    console.log('Service Worker activating...');
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
                     if (cacheName !== CACHE_NAME && cacheName !== OFFLINE_CACHE) {
-                        console.log('Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
@@ -108,13 +104,10 @@ async function handleAPIRequest(request) {
         
         return response;
     } catch (error) {
-        console.log('API request failed, checking cache...', error);
-        
         // If network fails, try to serve from cache (only works for GET requests)
         if (request.method === 'GET') {
             const cachedResponse = await caches.match(request);
             if (cachedResponse) {
-                console.log('Serving API response from cache');
                 return cachedResponse;
             }
         }
@@ -153,7 +146,6 @@ async function storeOfflineRequest(request) {
         const store = transaction.objectStore('pending_requests');
         await store.add(requestData);
         
-        console.log('Stored offline request for later sync');
     } catch (error) {
         console.error('Error storing offline request:', error);
     }
@@ -185,8 +177,6 @@ function openDB() {
 
 // Background sync event
 self.addEventListener('sync', event => {
-    console.log('Background sync triggered:', event.tag);
-    
     if (event.tag === 'church-registration-sync') {
         event.waitUntil(syncPendingRequests());
     }
@@ -200,8 +190,6 @@ async function syncPendingRequests() {
         const store = transaction.objectStore('pending_requests');
         const requests = await store.getAll();
         
-        console.log(`Syncing ${requests.length} pending requests`);
-        
         for (const requestData of requests) {
             try {
                 const response = await fetch(requestData.url, {
@@ -213,7 +201,6 @@ async function syncPendingRequests() {
                 if (response.ok) {
                     // Remove successfully synced request
                     await store.delete(requestData.id);
-                    console.log('Successfully synced request:', requestData.url);
                 }
             } catch (error) {
                 console.error('Failed to sync request:', requestData.url, error);

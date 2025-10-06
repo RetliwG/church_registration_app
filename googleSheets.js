@@ -210,6 +210,8 @@ class DataManager {
             signins: []
         };
         this.lastCacheUpdate = null;
+        this.cacheMaxAge = 10 * 60 * 1000; // 10 minutes
+        this.maxSigninRecords = 1000; // Limit signin records to prevent memory issues
     }
 
     async initialize() {
@@ -217,6 +219,38 @@ class DataManager {
         await this.setupSheetsIfNeeded();
         // Initial cache load
         await this.refreshCache();
+        
+        // Set up periodic cache cleanup
+        this.setupCacheCleanup();
+    }
+    
+    setupCacheCleanup() {
+        // Clean up old signin records every hour
+        setInterval(() => {
+            this.cleanupOldSigninRecords();
+        }, 60 * 60 * 1000); // 1 hour
+    }
+    
+    cleanupOldSigninRecords() {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const cutoffDate = thirtyDaysAgo.toLocaleDateString();
+        
+        // Keep only recent records to prevent memory bloat
+        this.cache.signins = this.cache.signins.filter(record => {
+            if (!record.date) return true; // Keep if no date
+            const recordDate = new Date(record.date);
+            return recordDate >= thirtyDaysAgo;
+        });
+        
+        // Also limit total number of records
+        if (this.cache.signins.length > this.maxSigninRecords) {
+            // Keep only the most recent records
+            this.cache.signins = this.cache.signins
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, this.maxSigninRecords);
+        }
     }
 
     async setupSheetsIfNeeded() {
@@ -266,6 +300,19 @@ class DataManager {
             }
         } catch (error) {
             console.error('Error setting up signin sheet:', error);
+        }
+    }
+    
+    // Check if cache needs refreshing based on age
+    isCacheStale() {
+        if (!this.lastCacheUpdate) return true;
+        return Date.now() - this.lastCacheUpdate > this.cacheMaxAge;
+    }
+    
+    // Smart refresh - only refresh if cache is stale or forced
+    async refreshCacheIfNeeded(force = false) {
+        if (force || this.isCacheStale()) {
+            await this.refreshCache();
         }
     }
 
@@ -370,12 +417,24 @@ class DataManager {
             ];
 
             await this.sheetsAPI.appendSheet(CONFIG.SHEETS.PARENTS, [row]);
-            await this.refreshCache();
+            
+            // Optimize: Add to cache locally instead of full refresh
+            const newParentId = this.cache.parents.length + 2; // Row number in sheet
+            const newParent = {
+                id: newParentId,
+                name: parentData.name,
+                phone1: parentData.phone1,
+                phone2: parentData.phone2,
+                email: parentData.email,
+                address: parentData.address,
+                registrationDate: new Date().toLocaleDateString()
+            };
+            this.cache.parents.push(newParent);
             
             hideLoading();
             
-            // Return the new parent's ID (last row)
-            return this.cache.parents[this.cache.parents.length - 1].id;
+            // Return the new parent's ID
+            return newParentId;
         } catch (error) {
             hideLoading();
             console.error('Error saving parent:', error);
@@ -401,10 +460,25 @@ class DataManager {
             ];
 
             await this.sheetsAPI.appendSheet(CONFIG.SHEETS.CHILDREN, [row]);
-            await this.refreshCache();
+            
+            // Optimize: Add to cache locally instead of full refresh
+            const newChildId = this.cache.children.length + 2; // Row number in sheet
+            const newChild = {
+                id: newChildId,
+                parentId: childData.parentId,
+                firstName: childData.firstName,
+                lastName: childData.lastName,
+                gender: childData.gender,
+                mediaConsent: childData.mediaConsent,
+                otherInfo: childData.otherInfo,
+                registrationDate: new Date().toLocaleDateString(),
+                dateOfBirth: childData.dateOfBirth,
+                age: age
+            };
+            this.cache.children.push(newChild);
             
             // Return the new child's ID
-            return this.cache.children[this.cache.children.length - 1].id;
+            return newChildId;
         } catch (error) {
             console.error('Error saving child:', error);
             throw error;
@@ -431,7 +505,19 @@ class DataManager {
             ];
 
             await this.sheetsAPI.appendSheet(CONFIG.SHEETS.SIGNIN, [row]);
-            await this.refreshCache();
+            
+            // Optimize: Add to cache locally instead of full refresh
+            const newSigninId = this.cache.signins.length + 2; // Row number in sheet
+            const newSignin = {
+                id: newSigninId,
+                signInTimestamp: timestamp,
+                signOutTimestamp: '',
+                childId: childId,
+                parentId: child.parentId,
+                childFullName: `${child.firstName} ${child.lastName}`,
+                date: date
+            };
+            this.cache.signins.push(newSignin);
             
             return true;
         } catch (error) {
@@ -477,7 +563,9 @@ class DataManager {
                 [[timestamp]]
             );
             
-            await this.refreshCache();
+            // Optimize: Update cache locally instead of full refresh
+            signInRecord.signOutTimestamp = timestamp;
+            
             return true;
         } catch (error) {
             console.error('Error signing out child:', error);

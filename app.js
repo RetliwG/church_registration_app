@@ -298,7 +298,7 @@ function showSection(sectionName) {
         
         // Refresh cache when switching to sign-in section to ensure new registrations appear
         if (sectionName === 'signin') {
-            dataManager.refreshCache().catch(error => {
+            dataManager.refreshCacheIfNeeded().catch(error => {
                 console.error('Error refreshing cache for sign-in section:', error);
             });
         }
@@ -695,7 +695,7 @@ async function refreshAttendanceView() {
     try {
         showLoading();
         
-        await dataManager.refreshCache();
+        await dataManager.refreshCacheIfNeeded(true); // Force refresh for attendance view
         const currentlySignedIn = dataManager.getCurrentlySignedIn();
         
         updateAttendanceTable(currentlySignedIn);
