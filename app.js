@@ -72,6 +72,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Update current date display
     updateCurrentDate();
     
+    // Initialize mobile-specific handling
+    initializeMobileHandling();
+    
     // Check for app updates
     checkForUpdates();
 });
@@ -291,9 +294,12 @@ function getOrCreateNetworkStatusIndicator() {
 
 // Navigation
 function showSection(sectionName) {
+    console.log(`📱 Switching to section: ${sectionName}`);
+    
     // Hide all sections
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
+        console.log(`🔄 Hiding section: ${section.id}`);
     });
     
     // Remove active class from all nav buttons
@@ -302,10 +308,29 @@ function showSection(sectionName) {
     });
     
     // Show selected section
-    document.getElementById(sectionName).classList.add('active');
+    const targetSection = document.getElementById(sectionName);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        console.log(`✅ Showing section: ${sectionName}`);
+        
+        // Force display on mobile if needed
+        if (window.innerWidth <= 768) {
+            console.log('📱 Mobile device detected, forcing section display');
+            // Hide all sections explicitly
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            // Show only the target section
+            targetSection.style.display = 'block';
+        }
+    } else {
+        console.error(`❌ Section not found: ${sectionName}`);
+    }
     
     // Add active class to clicked nav button
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
     
     // Refresh data if viewing attendance
     if (sectionName === 'attendance') {
@@ -315,6 +340,63 @@ function showSection(sectionName) {
 
 function openConfiguration() {
     window.location.href = 'config-setup.html';
+}
+
+function initializeMobileHandling() {
+    console.log('📱 Initializing mobile handling...');
+    
+    // Check if on mobile device
+    const isMobile = window.innerWidth <= 768;
+    console.log(`📱 Mobile device: ${isMobile}, Width: ${window.innerWidth}px`);
+    
+    if (isMobile) {
+        // Ensure only the active section is visible on mobile
+        const activeSection = document.querySelector('.section.active');
+        const allSections = document.querySelectorAll('.section');
+        
+        console.log(`📱 Found ${allSections.length} sections, active: ${activeSection?.id || 'none'}`);
+        
+        // Hide all sections first
+        allSections.forEach(section => {
+            section.style.display = 'none';
+            section.classList.remove('active');
+        });
+        
+        // Show only the registration section by default
+        const registrationSection = document.getElementById('registration');
+        if (registrationSection) {
+            registrationSection.style.display = 'block';
+            registrationSection.classList.add('active');
+            console.log('📱 Set registration section as active for mobile');
+        }
+        
+        // Update nav button states
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        const firstNavBtn = document.querySelector('.nav-btn');
+        if (firstNavBtn) {
+            firstNavBtn.classList.add('active');
+        }
+    }
+    
+    // Listen for orientation changes
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            console.log('📱 Orientation changed, reinitializing mobile handling');
+            initializeMobileHandling();
+        }, 100);
+    });
+    
+    // Listen for resize events
+    window.addEventListener('resize', () => {
+        const isMobileNow = window.innerWidth <= 768;
+        if (isMobileNow !== isMobile) {
+            console.log('📱 Screen size changed, reinitializing mobile handling');
+            initializeMobileHandling();
+        }
+    });
 }
 
 // Registration functionality

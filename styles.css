@@ -97,7 +97,7 @@ nav {
 
 /* Section Styles */
 .section {
-    display: none;
+    display: none !important;
     background: white;
     border-radius: 12px;
     padding: 30px;
@@ -106,7 +106,7 @@ nav {
 }
 
 .section.active {
-    display: block;
+    display: block !important;
     animation: fadeIn 0.3s ease-in;
 }
 
@@ -523,6 +523,15 @@ nav {
         right: 0;
         left: 0;
         top: 10px;
+    }
+    
+    /* Ensure sections display correctly on mobile */
+    .section {
+        display: none !important;
+    }
+    
+    .section.active {
+        display: block !important;
     }
 }
 
