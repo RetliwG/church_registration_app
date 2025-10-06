@@ -333,7 +333,21 @@ class DataManager {
                 children: this.cache.children.length,
                 signins: this.cache.signins.length
             });
-            console.log('📅 Today\'s sign-ins:', this.cache.signins.filter(s => s.date === new Date().toLocaleDateString()));
+            
+            // Use normalized date comparison for logging today's sign-ins
+            const today = new Date().toLocaleDateString();
+            const normalizeDate = (dateStr) => {
+                if (!dateStr) return '';
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return `${parseInt(parts[0])}/${parseInt(parts[1])}/${parts[2]}`;
+                }
+                return dateStr;
+            };
+            const normalizedToday = normalizeDate(today);
+            const todaysSignins = this.cache.signins.filter(s => normalizeDate(s.date) === normalizedToday);
+            
+            console.log('📅 Today\'s sign-ins:', todaysSignins);
             console.log('✅ Currently signed in:', this.getCurrentlySignedIn());
         } catch (error) {
             hideLoading();
@@ -541,7 +555,26 @@ class DataManager {
         const today = new Date().toLocaleDateString();
         console.log('🔍 Getting currently signed in for date:', today);
         
-        const todaysSignins = this.cache.signins.filter(record => record.date === today);
+        // Normalize date for comparison - remove leading zeros and ensure consistent format
+        const normalizeDate = (dateStr) => {
+            if (!dateStr) return '';
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                // Remove leading zeros: 06/10/2025 becomes 6/10/2025
+                return `${parseInt(parts[0])}/${parseInt(parts[1])}/${parts[2]}`;
+            }
+            return dateStr;
+        };
+        
+        const normalizedToday = normalizeDate(today);
+        console.log('🔍 Normalized today date:', normalizedToday);
+        
+        const todaysSignins = this.cache.signins.filter(record => {
+            const normalizedRecordDate = normalizeDate(record.date);
+            const matches = normalizedRecordDate === normalizedToday;
+            console.log(`🔍 Comparing "${normalizedRecordDate}" vs "${normalizedToday}": ${matches}`);
+            return matches;
+        });
         console.log('🔍 Today\'s sign-ins found:', todaysSignins);
         
         const currentlySignedIn = todaysSignins.filter(record => 
