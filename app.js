@@ -209,6 +209,7 @@ function setupEventListeners() {
 
     // Attendance
     document.getElementById('refreshAttendanceBtn').addEventListener('click', refreshAttendanceView);
+    document.getElementById('syncDataBtn').addEventListener('click', syncDataFromGoogleSheets);
 
     // Network status listeners for PWA
     window.addEventListener('online', handleOnlineStatus);
@@ -776,6 +777,30 @@ async function signOutFromAttendance(childId) {
         hideLoading();
         console.error('Error signing out child:', error);
         showMessage('Error signing out child. Please try again.', 'error');
+    }
+}
+
+async function syncDataFromGoogleSheets() {
+    try {
+        showLoading();
+        
+        console.log('🔄 Manual sync requested - refreshing cache from Google Sheets...');
+        await dataManager.refreshCache();
+        
+        // Update attendance view if currently visible
+        if (document.getElementById('attendance').classList.contains('active')) {
+            const currentlySignedIn = dataManager.getCurrentlySignedIn();
+            updateAttendanceTable(currentlySignedIn);
+            updateAttendanceCount(currentlySignedIn.length);
+        }
+        
+        hideLoading();
+        showMessage('Data synced successfully with Google Sheets!', 'success');
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error syncing data:', error);
+        showMessage('Error syncing data. Please check your connection and try again.', 'error');
     }
 }
 

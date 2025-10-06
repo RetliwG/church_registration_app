@@ -218,6 +218,9 @@ class DataManager {
         await this.sheetsAPI.initialize();
         await this.setupSheetsIfNeeded();
         await this.refreshCache();
+        
+        // Set up automatic cache refresh
+        this.setupAutoRefresh();
     }
 
     async setupSheetsIfNeeded() {
@@ -325,6 +328,42 @@ class DataManager {
             console.error('Error refreshing cache:', error);
             throw error;
         }
+    }
+
+    setupAutoRefresh() {
+        console.log('🔄 Setting up automatic cache refresh...');
+        
+        // Auto-refresh every 30 seconds
+        setInterval(async () => {
+            console.log('⏰ Auto-refreshing cache...');
+            try {
+                await this.refreshCache();
+            } catch (error) {
+                console.error('Auto-refresh failed:', error);
+            }
+        }, 30000); // 30 seconds
+        
+        // Refresh when app becomes visible (switching between devices/tabs)
+        document.addEventListener('visibilitychange', async () => {
+            if (!document.hidden) {
+                console.log('👁️ App became visible, refreshing cache...');
+                try {
+                    await this.refreshCache();
+                } catch (error) {
+                    console.error('Visibility refresh failed:', error);
+                }
+            }
+        });
+        
+        // Refresh when window regains focus
+        window.addEventListener('focus', async () => {
+            console.log('🎯 Window focused, refreshing cache...');
+            try {
+                await this.refreshCache();
+            } catch (error) {
+                console.error('Focus refresh failed:', error);
+            }
+        });
     }
 
     calculateAge(dateOfBirth) {
