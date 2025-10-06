@@ -27,7 +27,7 @@ function handleCacheBusting() {
         if (body) {
             const indicator = document.createElement('div');
             indicator.style.cssText = `
-                position: fixed; top: 10px; right: 10px; 
+                position: fixed; top: 10px; left: 10px; 
                 background: #28a745; color: white; 
                 padding: 8px 12px; border-radius: 4px; 
                 font-size: 12px; z-index: 10000;
