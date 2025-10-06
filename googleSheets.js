@@ -442,12 +442,27 @@ class DataManager {
 
     async signOutChild(childId) {
         try {
+            // Normalize date for comparison - remove leading zeros and ensure consistent format
+            const normalizeDate = (dateStr) => {
+                if (!dateStr) return '';
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    // Remove leading zeros: 06/10/2025 becomes 6/10/2025
+                    return `${parseInt(parts[0])}/${parseInt(parts[1])}/${parts[2]}`;
+                }
+                return dateStr;
+            };
+            
+            const today = new Date().toLocaleDateString();
+            const normalizedToday = normalizeDate(today);
+            
             // Find the most recent sign-in record for this child without a sign-out
-            const signInRecord = this.cache.signins.find(record => 
-                record.childId === childId && 
-                !record.signOutTimestamp &&
-                record.date === new Date().toLocaleDateString()
-            );
+            const signInRecord = this.cache.signins.find(record => {
+                const normalizedRecordDate = normalizeDate(record.date);
+                return record.childId === childId && 
+                       !record.signOutTimestamp &&
+                       normalizedRecordDate === normalizedToday;
+            });
 
             if (!signInRecord) {
                 throw new Error('No active sign-in record found for this child');
@@ -492,8 +507,24 @@ class DataManager {
     }
 
     getTodaysSignIns() {
+        // Normalize date for comparison - remove leading zeros and ensure consistent format
+        const normalizeDate = (dateStr) => {
+            if (!dateStr) return '';
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                // Remove leading zeros: 06/10/2025 becomes 6/10/2025
+                return `${parseInt(parts[0])}/${parseInt(parts[1])}/${parts[2]}`;
+            }
+            return dateStr;
+        };
+        
         const today = new Date().toLocaleDateString();
-        return this.cache.signins.filter(record => record.date === today);
+        const normalizedToday = normalizeDate(today);
+        
+        return this.cache.signins.filter(record => {
+            const normalizedRecordDate = normalizeDate(record.date);
+            return normalizedRecordDate === normalizedToday;
+        });
     }
 
     getCurrentlySignedIn() {
