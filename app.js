@@ -471,19 +471,28 @@ async function saveRegistration() {
             address: document.getElementById('parentAddress').value.trim()
         };
         
-        // Save parent
-        const parentId = await dataManager.saveParent(parentData);
+        // Save or update parent
+        let parentId;
+        if (editingParentId) {
+            // Update existing parent
+            parentData.id = editingParentId;
+            await dataManager.updateParent(parentData);
+            parentId = editingParentId;
+        } else {
+            // Create new parent
+            parentId = await dataManager.saveParent(parentData);
+        }
         
-        // Get and save children
+        // Get and save/update children
         const childForms = document.querySelectorAll('.child-form');
         const childPromises = [];
         
         for (const childForm of childForms) {
-            const childId = childForm.getAttribute('data-child-id');
+            const formId = childForm.getAttribute('data-child-id');
             
-            const firstName = document.getElementById(`childFirstName${childId}`).value.trim();
-            const lastName = document.getElementById(`childLastName${childId}`).value.trim();
-            const dateOfBirth = document.getElementById(`childDOB${childId}`).value;
+            const firstName = document.getElementById(`childFirstName${formId}`).value.trim();
+            const lastName = document.getElementById(`childLastName${formId}`).value.trim();
+            const dateOfBirth = document.getElementById(`childDOB${formId}`).value;
             
             // Validate required fields
             if (!firstName || !lastName || !dateOfBirth) {
@@ -496,13 +505,22 @@ async function saveRegistration() {
                 parentId: parentId,
                 firstName: firstName,
                 lastName: lastName,
-                gender: document.getElementById(`childGender${childId}`).value,
-                mediaConsent: document.getElementById(`mediaConsent${childId}`).value,
-                otherInfo: document.getElementById(`childOtherInfo${childId}`).value.trim(),
+                gender: document.getElementById(`childGender${formId}`).value,
+                mediaConsent: document.getElementById(`mediaConsent${formId}`).value,
+                otherInfo: document.getElementById(`childOtherInfo${formId}`).value.trim(),
                 dateOfBirth: dateOfBirth
             };
             
-            childPromises.push(dataManager.saveChild(childData));
+            // Check if this child is being edited
+            const existingChildId = editingChildIds.get(parseInt(formId));
+            if (existingChildId) {
+                // Update existing child
+                childData.id = existingChildId;
+                childPromises.push(dataManager.updateChild(childData));
+            } else {
+                // Create new child
+                childPromises.push(dataManager.saveChild(childData));
+            }
         }
         
         await Promise.all(childPromises);
@@ -521,6 +539,10 @@ async function saveRegistration() {
 function clearRegistrationForm() {
     // Clear parent form
     document.getElementById('parentForm').reset();
+    
+    // Clear edit mode
+    editingParentId = null;
+    editingChildIds.clear();
     
     // Remove all child forms and add one empty one
     document.getElementById('childrenContainer').innerHTML = '';
@@ -548,6 +570,10 @@ function loadChildForEditing(childId) {
         // Clear existing form
         clearRegistrationForm();
         
+        // Set edit mode
+        editingParentId = parent.id;
+        editingChildIds.clear();
+        
         // Populate parent information
         document.getElementById('parentName').value = parent.name || '';
         document.getElementById('parentPhone1').value = parent.phone1 || '';
@@ -565,15 +591,31 @@ function loadChildForEditing(childId) {
         // Add a form for each child
         siblings.forEach(sibling => {
             addChildForm();
-            const childId = childFormCounter;
+            const formId = childFormCounter;
+            
+            // Track the actual child ID for this form
+            editingChildIds.set(formId, sibling.id);
             
             // Populate child information
-            document.getElementById(`childFirstName${childId}`).value = sibling.firstName || '';
-            document.getElementById(`childLastName${childId}`).value = sibling.lastName || '';
-            document.getElementById(`childDOB${childId}`).value = sibling.dateOfBirth || '';
-            document.getElementById(`childGender${childId}`).value = sibling.gender || '';
-            document.getElementById(`mediaConsent${childId}`).value = sibling.mediaConsent || '';
-            document.getElementById(`childOtherInfo${childId}`).value = sibling.otherInfo || '';
+            document.getElementById(`childFirstName${formId}`).value = sibling.firstName || '';
+            document.getElementById(`childLastName${formId}`).value = sibling.lastName || '';
+            
+            // Convert date format from M/D/YYYY to YYYY-MM-DD for input field
+            let formattedDate = '';
+            if (sibling.dateOfBirth) {
+                const dateParts = sibling.dateOfBirth.split('/');
+                if (dateParts.length === 3) {
+                    const month = dateParts[0].padStart(2, '0');
+                    const day = dateParts[1].padStart(2, '0');
+                    const year = dateParts[2];
+                    formattedDate = `${year}-${month}-${day}`;
+                }
+            }
+            document.getElementById(`childDOB${formId}`).value = formattedDate;
+            
+            document.getElementById(`childGender${formId}`).value = sibling.gender || '';
+            document.getElementById(`mediaConsent${formId}`).value = sibling.mediaConsent || '';
+            document.getElementById(`childOtherInfo${formId}`).value = sibling.otherInfo || '';
         });
         
         showMessage('Child information loaded for editing. Update any fields and click Save.', 'info');
@@ -586,6 +628,8 @@ function loadChildForEditing(childId) {
 
 // Sign in/out functionality
 let selectedChildren = [];
+let editingParentId = null; // Track if we're editing an existing parent
+let editingChildIds = new Map(); // Map form counter to actual child ID
 
 function handleChildSearch(event) {
     const query = event.target.value.trim();

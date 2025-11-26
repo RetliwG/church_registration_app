@@ -485,6 +485,89 @@ class DataManager {
         }
     }
 
+    async updateParent(parentData) {
+        try {
+            // parentData should include id
+            const rowNumber = parentData.id;
+            const range = `${CONFIG.SHEETS.PARENTS}!A${rowNumber}:F${rowNumber}`;
+            
+            const row = [
+                parentData.name,
+                parentData.phone1,
+                parentData.phone2,
+                parentData.email,
+                parentData.address,
+                // Keep original registration date - read it first or use existing
+                this.cache.parents.find(p => p.id === parentData.id)?.registrationDate || new Date().toLocaleDateString()
+            ];
+
+            await this.sheetsAPI.writeSheet(CONFIG.SHEETS.PARENTS, range, [row]);
+            
+            // Update cache
+            const parentIndex = this.cache.parents.findIndex(p => p.id === parentData.id);
+            if (parentIndex !== -1) {
+                this.cache.parents[parentIndex] = {
+                    ...this.cache.parents[parentIndex],
+                    name: parentData.name,
+                    phone1: parentData.phone1,
+                    phone2: parentData.phone2,
+                    email: parentData.email,
+                    address: parentData.address
+                };
+            }
+            
+            return parentData.id;
+        } catch (error) {
+            console.error('Error updating parent:', error);
+            throw error;
+        }
+    }
+
+    async updateChild(childData) {
+        try {
+            // childData should include id
+            const rowNumber = childData.id;
+            const age = this.calculateAge(childData.dateOfBirth);
+            const range = `${CONFIG.SHEETS.CHILDREN}!A${rowNumber}:I${rowNumber}`;
+            
+            const row = [
+                childData.parentId,
+                childData.firstName,
+                childData.lastName,
+                childData.gender,
+                childData.mediaConsent,
+                childData.otherInfo,
+                // Keep original registration date
+                this.cache.children.find(c => c.id === childData.id)?.registrationDate || new Date().toLocaleDateString(),
+                childData.dateOfBirth,
+                age
+            ];
+
+            await this.sheetsAPI.writeSheet(CONFIG.SHEETS.CHILDREN, range, [row]);
+            
+            // Update cache
+            const childIndex = this.cache.children.findIndex(c => c.id === childData.id);
+            if (childIndex !== -1) {
+                this.cache.children[childIndex] = {
+                    ...this.cache.children[childIndex],
+                    parentId: childData.parentId,
+                    firstName: childData.firstName,
+                    lastName: childData.lastName,
+                    gender: childData.gender,
+                    mediaConsent: childData.mediaConsent,
+                    otherInfo: childData.otherInfo,
+                    dateOfBirth: childData.dateOfBirth,
+                    age: age
+                };
+            }
+            
+            return childData.id;
+        } catch (error) {
+            console.error('Error updating child:', error);
+            throw error;
+        }
+    }
+
     // Sign-in operations
     async signInChild(childId) {
         try {
