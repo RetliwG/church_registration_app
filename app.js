@@ -425,11 +425,7 @@ function addChildForm() {
         <div class="form-row">
             <div class="form-group">
                 <label for="mediaConsent${childFormCounter}">Media Consent</label>
-                <select id="mediaConsent${childFormCounter}" name="mediaConsent">
-                    <option value="">Select</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+                <input type="text" id="mediaConsent${childFormCounter}" name="mediaConsent" placeholder="e.g., Yes, No, or specify reasons">
             </div>
         </div>
         
@@ -576,7 +572,7 @@ function loadChildForEditing(childId) {
             document.getElementById(`childLastName${childId}`).value = sibling.lastName || '';
             document.getElementById(`childDOB${childId}`).value = sibling.dateOfBirth || '';
             document.getElementById(`childGender${childId}`).value = sibling.gender || '';
-            document.getElementById(`mediaConsent${childId}`).value = sibling.mediaConsent || 'yes';
+            document.getElementById(`mediaConsent${childId}`).value = sibling.mediaConsent || '';
             document.getElementById(`childOtherInfo${childId}`).value = sibling.otherInfo || '';
         });
         
