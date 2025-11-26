@@ -152,6 +152,9 @@ async function initializeApp() {
         dataManager = new DataManager();
         await dataManager.initialize();
         
+        // Load ministries
+        await loadMinistries();
+        
         // Load initial data
         await refreshAttendanceView();
         
@@ -1125,3 +1128,189 @@ window.removeSelectedChild = removeSelectedChild;
 window.signOutFromAttendance = signOutFromAttendance;
 window.handleSignIn = handleSignIn;
 window.handleSignOut = handleSignOut;
+window.switchMinistry = switchMinistry;
+window.addMinistry = addMinistry;
+window.removeMinistry = removeMinistry;
+
+// Ministry Management Functions
+async function loadMinistries() {
+    try {
+        const ministries = CONFIG.getMinistries();
+        updateMinistriesDisplay(ministries);
+        updateMinistrySelector(ministries);
+    } catch (error) {
+        console.error('Error loading ministries:', error);
+    }
+}
+
+function updateMinistriesDisplay(ministries) {
+    const container = document.getElementById('ministriesList');
+    
+    if (!ministries || Object.keys(ministries).length === 0) {
+        container.innerHTML = '<p>No ministries configured yet.</p>';
+        return;
+    }
+    
+    const selectedMinistry = CONFIG.SELECTED_MINISTRY;
+    
+    container.innerHTML = Object.entries(ministries).map(([name, sheetId]) => `
+        <div class="ministry-item ${name === selectedMinistry ? 'selected' : ''}">
+            <div class="ministry-info">
+                <strong>${name}</strong>
+                <small>Sheet ID: ${sheetId}</small>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeMinistry('${name}')">
+                Remove
+            </button>
+        </div>
+    `).join('');
+}
+
+function updateMinistrySelector(ministries) {
+    const selector = document.getElementById('ministrySelector');
+    const selectedMinistry = CONFIG.SELECTED_MINISTRY;
+    
+    if (!ministries || Object.keys(ministries).length === 0) {
+        selector.style.display = 'none';
+        return;
+    }
+    
+    selector.style.display = 'block';
+    selector.innerHTML = '<option value="">Select Ministry...</option>' +
+        Object.keys(ministries).map(name => 
+            `<option value="${name}" ${name === selectedMinistry ? 'selected' : ''}>${name}</option>`
+        ).join('');
+}
+
+async function addMinistry(event) {
+    event.preventDefault();
+    
+    try {
+        showLoading();
+        
+        const name = document.getElementById('ministryName').value.trim();
+        const url = document.getElementById('ministrySheetUrl').value.trim();
+        
+        if (!name || !url) {
+            showMessage('Please fill in all fields.', 'error');
+            hideLoading();
+            return;
+        }
+        
+        // Extract sheet ID from URL
+        let sheetId = url;
+        if (url.includes('/d/')) {
+            const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            sheetId = match ? match[1] : url;
+        }
+        
+        // Get existing ministries
+        const ministries = CONFIG.getMinistries();
+        
+        // Check if ministry already exists
+        if (ministries[name]) {
+            showMessage('A ministry with this name already exists.', 'error');
+            hideLoading();
+            return;
+        }
+        
+        // Add new ministry
+        ministries[name] = sheetId;
+        CONFIG.setMinistries(ministries);
+        
+        // If this is the first ministry, select it
+        if (Object.keys(ministries).length === 1) {
+            CONFIG.SELECTED_MINISTRY = name;
+        }
+        
+        // Update displays
+        updateMinistriesDisplay(ministries);
+        updateMinistrySelector(ministries);
+        
+        // Clear form
+        document.getElementById('addMinistryForm').reset();
+        
+        hideLoading();
+        showMessage(`Ministry "${name}" added successfully!`, 'success');
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error adding ministry:', error);
+        showMessage('Error adding ministry. Please try again.', 'error');
+    }
+}
+
+function removeMinistry(name) {
+    if (!confirm(`Are you sure you want to remove "${name}"?`)) {
+        return;
+    }
+    
+    try {
+        const ministries = CONFIG.getMinistries();
+        delete ministries[name];
+        CONFIG.setMinistries(ministries);
+        
+        // If we removed the selected ministry, clear selection
+        if (CONFIG.SELECTED_MINISTRY === name) {
+            CONFIG.SELECTED_MINISTRY = null;
+            
+            // Select first available ministry if any exist
+            const remaining = Object.keys(ministries);
+            if (remaining.length > 0) {
+                CONFIG.SELECTED_MINISTRY = remaining[0];
+            }
+        }
+        
+        updateMinistriesDisplay(ministries);
+        updateMinistrySelector(ministries);
+        
+        showMessage(`Ministry "${name}" removed.`, 'success');
+        
+        // Reload data if we switched ministries
+        if (dataManager) {
+            dataManager.refreshCache();
+        }
+        
+    } catch (error) {
+        console.error('Error removing ministry:', error);
+        showMessage('Error removing ministry.', 'error');
+    }
+}
+
+async function switchMinistry() {
+    try {
+        const selector = document.getElementById('ministrySelector');
+        const selectedName = selector.value;
+        
+        if (!selectedName) {
+            return;
+        }
+        
+        showLoading();
+        
+        CONFIG.SELECTED_MINISTRY = selectedName;
+        
+        // Reload data for new ministry
+        if (dataManager) {
+            await dataManager.refreshCache();
+            
+            // Refresh current view
+            const activeSection = document.querySelector('.section.active');
+            if (activeSection) {
+                const sectionId = activeSection.id;
+                if (sectionId === 'attendance') {
+                    await refreshAttendanceView();
+                }
+            }
+        }
+        
+        hideLoading();
+        showMessage(`Switched to ${selectedName}`, 'success');
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error switching ministry:', error);
+        showMessage('Error switching ministry.', 'error');
+    }
+}
+

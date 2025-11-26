@@ -11,11 +11,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function checkExistingConfig() {
     const clientId = localStorage.getItem('church_app_oauth_client_id');
+    const masterConfigSheetId = localStorage.getItem('church_app_master_config_sheet_id');
     const spreadsheetId = localStorage.getItem('church_app_spreadsheet_id');
     
-    if (clientId && spreadsheetId) {
+    if (clientId && (masterConfigSheetId || spreadsheetId)) {
         document.getElementById('oauthClientId').value = clientId;
-        document.getElementById('spreadsheetId').value = spreadsheetId;
+        if (masterConfigSheetId) {
+            document.getElementById('masterConfigSheetId').value = masterConfigSheetId;
+        }
+        if (spreadsheetId) {
+            document.getElementById('spreadsheetId').value = spreadsheetId;
+        }
         updateConnectionStatus('Configuration found in browser storage', 'info');
         document.getElementById('proceedToAppBtn').disabled = false;
     }
@@ -23,16 +29,35 @@ function checkExistingConfig() {
 
 function saveConfiguration() {
     const clientId = document.getElementById('oauthClientId').value.trim();
+    const masterConfigSheetId = document.getElementById('masterConfigSheetId').value.trim();
     const spreadsheetId = document.getElementById('spreadsheetId').value.trim();
     
-    if (!clientId || !spreadsheetId) {
-        updateConnectionStatus('Please fill in both fields', 'error');
+    if (!clientId || (!masterConfigSheetId && !spreadsheetId)) {
+        updateConnectionStatus('Please fill in OAuth Client ID and either Master Config Sheet or Spreadsheet ID', 'error');
         return;
+    }
+    
+    // Extract sheet ID from URL if full URL was provided
+    let extractedMasterConfigId = masterConfigSheetId;
+    if (masterConfigSheetId && masterConfigSheetId.includes('/d/')) {
+        const match = masterConfigSheetId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        extractedMasterConfigId = match ? match[1] : masterConfigSheetId;
+    }
+    
+    let extractedSpreadsheetId = spreadsheetId;
+    if (spreadsheetId && spreadsheetId.includes('/d/')) {
+        const match = spreadsheetId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        extractedSpreadsheetId = match ? match[1] : spreadsheetId;
     }
     
     // Store OAuth configuration in browser's local storage
     localStorage.setItem('church_app_oauth_client_id', clientId);
-    localStorage.setItem('church_app_spreadsheet_id', spreadsheetId);
+    if (extractedMasterConfigId) {
+        localStorage.setItem('church_app_master_config_sheet_id', extractedMasterConfigId);
+    }
+    if (extractedSpreadsheetId) {
+        localStorage.setItem('church_app_spreadsheet_id', extractedSpreadsheetId);
+    }
     
     updateConnectionStatus('Configuration saved to browser storage', 'success');
     document.getElementById('proceedToAppBtn').disabled = false;

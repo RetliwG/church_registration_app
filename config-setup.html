@@ -27,10 +27,17 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="spreadsheetId">Spreadsheet ID *</label>
-                        <input type="text" id="spreadsheetId" name="spreadsheetId" required 
-                               placeholder="Enter your Google Spreadsheet ID">
-                        <small>Copy this from your private Google Sheets URL</small>
+                        <label for="masterConfigSheetId">Master Config Spreadsheet ID or URL *</label>
+                        <input type="text" id="masterConfigSheetId" name="masterConfigSheetId" required 
+                               placeholder="Enter your Master Config Google Sheet ID or full URL">
+                        <small>This sheet contains a list of ministries. Leave blank if using single ministry mode.</small>
+                    </div>
+                    
+                    <div class="form-group" id="legacySpreadsheetGroup" style="display: none;">
+                        <label for="spreadsheetId">Spreadsheet ID (Legacy Single Ministry)</label>
+                        <input type="text" id="spreadsheetId" name="spreadsheetId" 
+                               placeholder="Optional: For single ministry mode">
+                        <small>Only needed if not using Master Config Sheet</small>
                     </div>
                     
                     <div class="form-actions">

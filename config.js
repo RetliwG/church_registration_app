@@ -5,8 +5,9 @@ const CONFIG = {
         return localStorage.getItem('church_app_oauth_client_id') || 'NOT_CONFIGURED';
     },
     
-    get SPREADSHEET_ID() {
-        const id = localStorage.getItem('church_app_spreadsheet_id');
+    // Master Config Sheet ID (contains list of ministries)
+    get MASTER_CONFIG_SHEET_ID() {
+        const id = localStorage.getItem('church_app_master_config_sheet_id');
         // Extract just the ID if full URL was provided
         if (id && id.includes('/d/')) {
             const match = id.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -15,10 +16,52 @@ const CONFIG = {
         return id || 'NOT_CONFIGURED';
     },
     
+    // Currently selected ministry
+    get SELECTED_MINISTRY() {
+        return localStorage.getItem('church_app_selected_ministry') || null;
+    },
+    
+    set SELECTED_MINISTRY(ministryName) {
+        if (ministryName) {
+            localStorage.setItem('church_app_selected_ministry', ministryName);
+        } else {
+            localStorage.removeItem('church_app_selected_ministry');
+        }
+    },
+    
+    // Get spreadsheet ID for currently selected ministry
+    get SPREADSHEET_ID() {
+        const ministries = this.getMinistries();
+        const selected = this.SELECTED_MINISTRY;
+        
+        if (selected && ministries[selected]) {
+            return ministries[selected];
+        }
+        
+        // Fallback to single ministry mode (legacy)
+        const id = localStorage.getItem('church_app_spreadsheet_id');
+        if (id && id.includes('/d/')) {
+            const match = id.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : id;
+        }
+        return id || 'NOT_CONFIGURED';
+    },
+    
+    // Get all ministries from cache
+    getMinistries() {
+        const stored = localStorage.getItem('church_app_ministries');
+        return stored ? JSON.parse(stored) : {};
+    },
+    
+    // Set ministries cache
+    setMinistries(ministries) {
+        localStorage.setItem('church_app_ministries', JSON.stringify(ministries));
+    },
+    
     // Check if configuration is complete
     isConfigured() {
         return this.GOOGLE_OAUTH_CLIENT_ID !== 'NOT_CONFIGURED' && 
-               this.SPREADSHEET_ID !== 'NOT_CONFIGURED';
+               this.MASTER_CONFIG_SHEET_ID !== 'NOT_CONFIGURED';
     },
     
     // Check if user is authenticated

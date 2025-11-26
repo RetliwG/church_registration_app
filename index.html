@@ -10,7 +10,7 @@
     <meta http-equiv="Expires" content="0">
     
     <title>Church Youth Registration</title>
-    <link rel="stylesheet" href="styles.css?v=11&t=1728225600">
+    <link rel="stylesheet" href="styles.css?v=16&t=1728225600">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -30,14 +30,20 @@
         <header>
             <div class="header-content">
                 <h1>Church Youth Registration</h1>
-                <button id="configBtn" class="config-btn" onclick="openConfiguration()" title="Settings & Configuration">
-                    ⚙️
-                </button>
+                <div class="header-controls">
+                    <select id="ministrySelector" class="ministry-selector" onchange="switchMinistry()" style="display: none;">
+                        <option value="">Select Ministry...</option>
+                    </select>
+                    <button id="configBtn" class="config-btn" onclick="openConfiguration()" title="Settings & Configuration">
+                        ⚙️
+                    </button>
+                </div>
             </div>
             <nav>
                 <button class="nav-btn active" onclick="showSection('registration')">Registration</button>
                 <button class="nav-btn" onclick="showSection('signin')">Sign In/Out</button>
                 <button class="nav-btn" onclick="showSection('attendance')">Current Attendance</button>
+                <button class="nav-btn" onclick="showSection('ministries')">Manage Ministries</button>
             </nav>
         </header>
 
@@ -137,6 +143,36 @@
                 </table>
             </div>
         </section>
+
+        <!-- Ministry Management Section -->
+        <section id="ministries" class="section">
+            <h2>Manage Ministries</h2>
+            
+            <div class="form-container">
+                <h3>Add Ministry</h3>
+                <form id="addMinistryForm" onsubmit="addMinistry(event)">
+                    <div class="form-group">
+                        <label for="ministryName">Ministry Name *</label>
+                        <input type="text" id="ministryName" name="ministryName" placeholder="e.g., Youth Ministry, Children's Church" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ministrySheetUrl">Google Sheet URL *</label>
+                        <input type="text" id="ministrySheetUrl" name="ministrySheetUrl" placeholder="Paste full Google Sheets URL" required>
+                        <small>This sheet should have Parents, Children, and SignInOut tabs</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Add Ministry</button>
+                </form>
+            </div>
+
+            <div class="form-container" style="margin-top: 30px;">
+                <h3>Existing Ministries</h3>
+                <div id="ministriesList" class="ministries-list">
+                    <p>No ministries configured yet.</p>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- Loading Overlay -->
@@ -150,9 +186,9 @@
 
     <!-- Google Identity Services (GIS) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="config.js?v=15&t=1728225800"></script>
-    <script src="oauth.js?v=15&t=1728225800"></script>
-    <script src="googleSheets.js?v=15&t=1728225800"></script>
-    <script src="app.js?v=15&t=1728225800"></script>
+    <script src="config.js?v=16&t=1728225800"></script>
+    <script src="oauth.js?v=16&t=1728225800"></script>
+    <script src="googleSheets.js?v=16&t=1728225800"></script>
+    <script src="app.js?v=16&t=1728225800"></script>
 </body>
 </html>
