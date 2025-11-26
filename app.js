@@ -785,10 +785,13 @@ function updateAttendanceTable(signInRecords) {
         
         return `
             <tr>
-                <td><a href="#" class="child-link" onclick="loadChildForEditing(${record.childId}); return false;">${record.childFullName}</a></td>
+                <td>${record.childFullName}</td>
                 <td>${parent ? parent.name : 'Unknown'}</td>
                 <td>${record.signInTimestamp}</td>
                 <td>
+                    <button type="button" class="btn btn-primary" onclick="loadChildForEditing(${record.childId})" style="margin-right: 10px;">
+                        Edit
+                    </button>
                     <button type="button" class="btn btn-warning" onclick="signOutFromAttendance(${record.childId})">
                         Sign Out
                     </button>
