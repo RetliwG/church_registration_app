@@ -403,6 +403,20 @@ nav {
     border-bottom: none;
 }
 
+/* Child link styling in attendance table */
+.child-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.child-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 /* Loading Overlay */
 .loading-overlay {
     position: fixed;

@@ -532,6 +532,62 @@ function clearRegistrationForm() {
     addChildForm();
 }
 
+function loadChildForEditing(childId) {
+    try {
+        const child = dataManager.getChildById(childId);
+        if (!child) {
+            showMessage('Child not found.', 'error');
+            return;
+        }
+        
+        const parent = dataManager.getParentById(child.parentId);
+        if (!parent) {
+            showMessage('Parent information not found.', 'error');
+            return;
+        }
+        
+        // Switch to registration section
+        showSection('registration');
+        
+        // Clear existing form
+        clearRegistrationForm();
+        
+        // Populate parent information
+        document.getElementById('parentName').value = parent.name || '';
+        document.getElementById('parentPhone1').value = parent.phone1 || '';
+        document.getElementById('parentPhone2').value = parent.phone2 || '';
+        document.getElementById('parentEmail').value = parent.email || '';
+        document.getElementById('parentAddress').value = parent.address || '';
+        
+        // Get all children for this parent
+        const siblings = dataManager.getChildrenByParentId(child.parentId);
+        
+        // Clear the default empty child form
+        document.getElementById('childrenContainer').innerHTML = '';
+        childFormCounter = 0;
+        
+        // Add a form for each child
+        siblings.forEach(sibling => {
+            addChildForm();
+            const childId = childFormCounter;
+            
+            // Populate child information
+            document.getElementById(`childFirstName${childId}`).value = sibling.firstName || '';
+            document.getElementById(`childLastName${childId}`).value = sibling.lastName || '';
+            document.getElementById(`childDOB${childId}`).value = sibling.dateOfBirth || '';
+            document.getElementById(`childGender${childId}`).value = sibling.gender || '';
+            document.getElementById(`mediaConsent${childId}`).value = sibling.mediaConsent || 'yes';
+            document.getElementById(`childOtherInfo${childId}`).value = sibling.otherInfo || '';
+        });
+        
+        showMessage('Child information loaded for editing. Update any fields and click Save.', 'info');
+        
+    } catch (error) {
+        console.error('Error loading child for editing:', error);
+        showMessage('Error loading child information.', 'error');
+    }
+}
+
 // Sign in/out functionality
 let selectedChildren = [];
 
@@ -719,7 +775,7 @@ function updateAttendanceTable(signInRecords) {
     const tbody = document.getElementById('attendanceTableBody');
     
     if (signInRecords.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No children currently signed in</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No children currently signed in</td></tr>';
         return;
     }
     
@@ -727,16 +783,10 @@ function updateAttendanceTable(signInRecords) {
         const child = dataManager.getChildById(record.childId);
         const parent = dataManager.getParentById(record.parentId);
         
-        // Get phone numbers, trim to avoid empty spaces being counted as values
-        const phone1 = parent ? (parent.phone1 || '').trim() : '';
-        const phone2 = parent ? (parent.phone2 || '').trim() : '';
-        
         return `
             <tr>
-                <td>${record.childFullName}</td>
+                <td><a href="#" class="child-link" onclick="loadChildForEditing(${record.childId}); return false;">${record.childFullName}</a></td>
                 <td>${parent ? parent.name : 'Unknown'}</td>
-                <td>${phone1}</td>
-                <td>${phone2}</td>
                 <td>${record.signInTimestamp}</td>
                 <td>
                     <button type="button" class="btn btn-warning" onclick="signOutFromAttendance(${record.childId})">

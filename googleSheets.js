@@ -594,6 +594,10 @@ class DataManager {
         return this.cache.parents.find(parent => parent.id === parentId);
     }
 
+    getChildrenByParentId(parentId) {
+        return this.cache.children.filter(child => child.parentId === parentId);
+    }
+
     getTodaysSignIns() {
         // Normalize date for comparison - remove leading zeros and ensure consistent format
         const normalizeDate = (dateStr) => {
