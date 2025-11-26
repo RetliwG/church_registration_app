@@ -489,7 +489,7 @@ class DataManager {
         try {
             // parentData should include id
             const rowNumber = parentData.id;
-            const range = `${CONFIG.SHEETS.PARENTS}!A${rowNumber}:F${rowNumber}`;
+            const range = `A${rowNumber}:F${rowNumber}`;
             
             const row = [
                 parentData.name,
@@ -528,7 +528,7 @@ class DataManager {
             // childData should include id
             const rowNumber = childData.id;
             const age = this.calculateAge(childData.dateOfBirth);
-            const range = `${CONFIG.SHEETS.CHILDREN}!A${rowNumber}:I${rowNumber}`;
+            const range = `A${rowNumber}:I${rowNumber}`;
             
             const row = [
                 childData.parentId,
