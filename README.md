@@ -15,6 +15,8 @@ View the complete application flow diagram: [workflow-diagram.mermaid](workflow-
 - **👥 Parent & Child Registration**: Register parent details and multiple children in one form
 - **✅ Sign In/Out Management**: Quick search and selection for signing children in and out
 - **📊 Real-time Attendance Tracking**: View all currently signed-in children
+- **✏️ Edit Existing Records**: Click "Edit" on any signed-in child to update their information
+- **🏢 Multi-Ministry Support**: Manage multiple ministries with separate spreadsheets
 - **🎨 iPad Optimized**: Responsive design that works perfectly on tablets
 - **☁️ Google Sheets Integration**: All data synced to private Google Sheets
 - **🔐 Secure Authentication**: Google OAuth login to protect sensitive data
@@ -43,13 +45,25 @@ View the complete application flow diagram: [workflow-diagram.mermaid](workflow-
 
 ### 1. Create Google Sheets
 
+#### For Multi-Ministry Setup:
+
+Each ministry needs its own Google Sheet with three tabs. **Currently, you must manually create these tabs:**
+
 1. Go to [Google Sheets](https://sheets.google.com)
-2. Create a new spreadsheet
-3. Rename it to "Church Youth Registration"
-4. Create three sheets (tabs) with these exact names:
-   - `Parents`
-   - `Children`
-   - `SignInOut`
+2. Create a new spreadsheet for each ministry (e.g., "Youth Ministry Data", "Children's Church Data")
+3. In each spreadsheet, create three sheets (tabs) with these **exact names**:
+   - `Parents` (case-sensitive)
+   - `Children` (case-sensitive)
+   - `SignInOut` (case-sensitive, no spaces)
+4. Leave the sheets empty - the app will automatically add headers on first use
+5. Share each spreadsheet with Editor access to the Google account(s) that will use the app
+
+**📝 Note**: The app will auto-populate headers but cannot create tabs. Future improvement: implement automatic tab creation via Google Sheets API.
+
+#### For Single Ministry (Legacy):
+
+1. Create one spreadsheet as described above
+2. Configure directly in the app settings
 
 ### 2. Set up Google OAuth & Sheets API
 
@@ -384,6 +398,33 @@ You can easily customize the application by:
 
 If you encounter any issues:
 1. Check the browser console for error messages
-2. Verify your Google Sheets setup
-3. Ensure all files are uploaded correctly
+2. Verify your Google Sheets setup (especially that tabs are named exactly: Parents, Children, SignInOut)
+3. Ensure you have Editor access to all ministry spreadsheets
 4. Test with a simple registration first
+
+## Future Improvements
+
+### Automatic Tab Creation
+**Current Limitation**: When adding a new ministry, you must manually create the three tabs (Parents, Children, SignInOut) in each ministry's Google Sheet.
+
+**Planned Enhancement**: Implement automatic tab creation using the Google Sheets API `spreadsheets.batchUpdate` method with `addSheet` requests. This would allow the app to:
+- Detect missing tabs when a ministry is added
+- Automatically create required tabs with proper names
+- Set up headers in one operation
+- Eliminate manual sheet setup
+
+**Implementation Notes**:
+- Use `spreadsheets.get` to check existing tabs
+- Use `spreadsheets.batchUpdate` with `AddSheetRequest` to create missing tabs
+- Requires updating OAuth scope to include `spreadsheets` (not just `spreadsheets.values`)
+- Reference: [Google Sheets API - Method: spreadsheets.batchUpdate](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/batchUpdate)
+
+### Master Config Sheet Integration
+**Current**: Ministries are added manually through the "Manage Ministries" UI and stored in localStorage.
+
+**Planned Enhancement**: Read ministry list from a master Google Sheet, enabling:
+- Centralized ministry management across multiple devices
+- Automatic ministry synchronization
+- Shared configuration across church staff
+- Single source of truth for ministry spreadsheets
+

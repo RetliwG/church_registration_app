@@ -152,7 +152,10 @@ async function initializeApp() {
         dataManager = new DataManager();
         await dataManager.initialize();
         
-        // Load ministries
+        // Initialize master config manager
+        window.masterConfigManager = new MasterConfigManager();
+        
+        // Load ministries from master sheet
         await loadMinistries();
         
         // Load initial data
@@ -1135,11 +1138,16 @@ window.removeMinistry = removeMinistry;
 // Ministry Management Functions
 async function loadMinistries() {
     try {
-        const ministries = CONFIG.getMinistries();
+        // Load from master config sheet (falls back to localStorage if not configured)
+        const ministries = await window.masterConfigManager.loadMinistries();
         updateMinistriesDisplay(ministries);
         updateMinistrySelector(ministries);
     } catch (error) {
         console.error('Error loading ministries:', error);
+        // Fallback to localStorage
+        const ministries = CONFIG.getMinistries();
+        updateMinistriesDisplay(ministries);
+        updateMinistrySelector(ministries);
     }
 }
 
@@ -1214,18 +1222,17 @@ async function addMinistry(event) {
             return;
         }
         
-        // Add new ministry
-        ministries[name] = sheetId;
-        CONFIG.setMinistries(ministries);
+        // Save to master config sheet (also updates localStorage)
+        await window.masterConfigManager.saveMinistry(name, sheetId);
         
         // If this is the first ministry, select it
-        if (Object.keys(ministries).length === 1) {
+        const updatedMinistries = CONFIG.getMinistries();
+        if (Object.keys(updatedMinistries).length === 1) {
             CONFIG.SELECTED_MINISTRY = name;
         }
         
-        // Update displays
-        updateMinistriesDisplay(ministries);
-        updateMinistrySelector(ministries);
+        // Reload ministries from sheet
+        await loadMinistries();
         
         // Clear form
         document.getElementById('addMinistryForm').reset();
@@ -1240,38 +1247,42 @@ async function addMinistry(event) {
     }
 }
 
-function removeMinistry(name) {
+async function removeMinistry(name) {
     if (!confirm(`Are you sure you want to remove "${name}"?`)) {
         return;
     }
     
     try {
-        const ministries = CONFIG.getMinistries();
-        delete ministries[name];
-        CONFIG.setMinistries(ministries);
+        showLoading();
+        
+        // Remove from master config sheet (also updates localStorage)
+        await window.masterConfigManager.removeMinistry(name);
         
         // If we removed the selected ministry, clear selection
         if (CONFIG.SELECTED_MINISTRY === name) {
             CONFIG.SELECTED_MINISTRY = null;
             
             // Select first available ministry if any exist
+            const ministries = CONFIG.getMinistries();
             const remaining = Object.keys(ministries);
             if (remaining.length > 0) {
                 CONFIG.SELECTED_MINISTRY = remaining[0];
             }
         }
         
-        updateMinistriesDisplay(ministries);
-        updateMinistrySelector(ministries);
+        // Reload ministries from sheet
+        await loadMinistries();
         
+        hideLoading();
         showMessage(`Ministry "${name}" removed.`, 'success');
         
         // Reload data if we switched ministries
         if (dataManager) {
-            dataManager.refreshCache();
+            await dataManager.refreshCache();
         }
         
     } catch (error) {
+        hideLoading();
         console.error('Error removing ministry:', error);
         showMessage('Error removing ministry.', 'error');
     }

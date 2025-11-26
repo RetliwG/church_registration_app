@@ -200,6 +200,255 @@ class GoogleSheetsAPI {
     }
 }
 
+// Master Config Sheet Manager - Manages ministry list
+class MasterConfigManager {
+    constructor() {
+        this.masterSheetId = CONFIG.MASTER_CONFIG_SHEET_ID;
+        this.baseUrl = 'https://sheets.googleapis.com/v4/spreadsheets';
+        this.sheetName = 'Ministries'; // Default tab name
+    }
+
+    async ensureAuthenticated() {
+        if (!oauthManager) {
+            oauthManager = new OAuthManager();
+        }
+        
+        if (!oauthManager.isSignedIn()) {
+            throw new Error('User not authenticated. Please sign in first.');
+        }
+        
+        await oauthManager.refreshTokenIfNeeded();
+    }
+
+    async loadMinistries() {
+        try {
+            if (this.masterSheetId === 'NOT_CONFIGURED') {
+                console.log('Master config sheet not configured, using localStorage only');
+                return CONFIG.getMinistries();
+            }
+
+            await this.ensureAuthenticated();
+            
+            // Try to read from Ministries tab first, fallback to Sheet1
+            let data = await this.readMinistriesSheet(this.sheetName);
+            
+            // If Ministries tab doesn't exist, try Sheet1
+            if (!data || data.length === 0) {
+                data = await this.readMinistriesSheet('Sheet1');
+            }
+            
+            if (!data || data.length <= 1) {
+                // No data or only headers
+                return CONFIG.getMinistries();
+            }
+            
+            // Parse the data (skip header row)
+            const ministries = {};
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (row[0] && row[1]) { // Ministry Name and Google Sheet ID/URL
+                    const name = row[0].trim();
+                    let sheetId = row[1].trim();
+                    
+                    // Extract ID from URL if full URL provided
+                    if (sheetId.includes('/d/')) {
+                        const match = sheetId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+                        sheetId = match ? match[1] : sheetId;
+                    }
+                    
+                    ministries[name] = sheetId;
+                }
+            }
+            
+            // Cache in localStorage
+            CONFIG.setMinistries(ministries);
+            
+            return ministries;
+        } catch (error) {
+            console.error('Error loading ministries from master sheet:', error);
+            // Fallback to localStorage
+            return CONFIG.getMinistries();
+        }
+    }
+
+    async readMinistriesSheet(sheetName) {
+        try {
+            const url = `${this.baseUrl}/${this.masterSheetId}/values/${sheetName}`;
+            const response = await oauthManager.authenticatedFetch(url);
+            
+            if (!response.ok) {
+                return null;
+            }
+            
+            const data = await response.json();
+            return data.values || [];
+        } catch (error) {
+            return null;
+        }
+    }
+
+    async saveMinistry(ministryName, sheetId) {
+        try {
+            if (this.masterSheetId === 'NOT_CONFIGURED') {
+                console.log('Master config sheet not configured, saving to localStorage only');
+                const ministries = CONFIG.getMinistries();
+                ministries[ministryName] = sheetId;
+                CONFIG.setMinistries(ministries);
+                return;
+            }
+
+            await this.ensureAuthenticated();
+            
+            // Read current data
+            let data = await this.readMinistriesSheet(this.sheetName);
+            if (!data || data.length === 0) {
+                // Try Sheet1
+                data = await this.readMinistriesSheet('Sheet1');
+                if (data && data.length > 0) {
+                    this.sheetName = 'Sheet1';
+                }
+            }
+            
+            // If still no data, create headers
+            if (!data || data.length === 0) {
+                await this.setupMasterSheet();
+                data = [['Ministry Name', 'Google Sheet ID']];
+            }
+            
+            // Check if ministry already exists
+            let existingRowIndex = -1;
+            for (let i = 1; i < data.length; i++) {
+                if (data[i][0] && data[i][0].trim() === ministryName) {
+                    existingRowIndex = i;
+                    break;
+                }
+            }
+            
+            if (existingRowIndex >= 0) {
+                // Update existing ministry
+                const rowNumber = existingRowIndex + 1;
+                await this.updateRow(rowNumber, [ministryName, sheetId]);
+            } else {
+                // Append new ministry
+                await this.appendRow([ministryName, sheetId]);
+            }
+            
+            // Update localStorage cache
+            const ministries = CONFIG.getMinistries();
+            ministries[ministryName] = sheetId;
+            CONFIG.setMinistries(ministries);
+            
+        } catch (error) {
+            console.error('Error saving ministry to master sheet:', error);
+            // Still save to localStorage
+            const ministries = CONFIG.getMinistries();
+            ministries[ministryName] = sheetId;
+            CONFIG.setMinistries(ministries);
+        }
+    }
+
+    async removeMinistry(ministryName) {
+        try {
+            // Always remove from localStorage
+            const ministries = CONFIG.getMinistries();
+            delete ministries[ministryName];
+            CONFIG.setMinistries(ministries);
+            
+            if (this.masterSheetId === 'NOT_CONFIGURED') {
+                return;
+            }
+
+            await this.ensureAuthenticated();
+            
+            // Note: Google Sheets API doesn't support row deletion via values API
+            // We would need to use batchUpdate with DeleteDimensionRequest
+            // For now, we'll just clear the row content
+            let data = await this.readMinistriesSheet(this.sheetName);
+            if (!data || data.length === 0) {
+                data = await this.readMinistriesSheet('Sheet1');
+                if (data && data.length > 0) {
+                    this.sheetName = 'Sheet1';
+                }
+            }
+            
+            if (!data || data.length === 0) return;
+            
+            // Find the row
+            for (let i = 1; i < data.length; i++) {
+                if (data[i][0] && data[i][0].trim() === ministryName) {
+                    const rowNumber = i + 1;
+                    // Clear the row
+                    await this.updateRow(rowNumber, ['', '']);
+                    break;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error removing ministry from master sheet:', error);
+        }
+    }
+
+    async setupMasterSheet() {
+        try {
+            const url = `${this.baseUrl}/${this.masterSheetId}/values/${this.sheetName}!A1:B1?valueInputOption=RAW`;
+            
+            const response = await oauthManager.authenticatedFetch(url, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    values: [['Ministry Name', 'Google Sheet ID']]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error setting up master sheet:', error);
+        }
+    }
+
+    async appendRow(values) {
+        try {
+            const url = `${this.baseUrl}/${this.masterSheetId}/values/${this.sheetName}:append?valueInputOption=RAW`;
+            
+            const response = await oauthManager.authenticatedFetch(url, {
+                method: 'POST',
+                body: JSON.stringify({
+                    values: [values]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error appending to master sheet:', error);
+            throw error;
+        }
+    }
+
+    async updateRow(rowNumber, values) {
+        try {
+            const range = `${this.sheetName}!A${rowNumber}:B${rowNumber}`;
+            const url = `${this.baseUrl}/${this.masterSheetId}/values/${range}?valueInputOption=RAW`;
+            
+            const response = await oauthManager.authenticatedFetch(url, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    values: [values]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error updating master sheet row:', error);
+            throw error;
+        }
+    }
+}
+
 // Data access layer
 class DataManager {
     constructor() {
