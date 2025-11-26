@@ -719,7 +719,7 @@ function updateAttendanceTable(signInRecords) {
     const tbody = document.getElementById('attendanceTableBody');
     
     if (signInRecords.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No children currently signed in</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No children currently signed in</td></tr>';
         return;
     }
     
@@ -727,10 +727,16 @@ function updateAttendanceTable(signInRecords) {
         const child = dataManager.getChildById(record.childId);
         const parent = dataManager.getParentById(record.parentId);
         
+        // Get phone numbers, trim to avoid empty spaces being counted as values
+        const phone1 = parent ? (parent.phone1 || '').trim() : '';
+        const phone2 = parent ? (parent.phone2 || '').trim() : '';
+        
         return `
             <tr>
                 <td>${record.childFullName}</td>
                 <td>${parent ? parent.name : 'Unknown'}</td>
+                <td>${phone1}</td>
+                <td>${phone2}</td>
                 <td>${record.signInTimestamp}</td>
                 <td>
                     <button type="button" class="btn btn-warning" onclick="signOutFromAttendance(${record.childId})">
