@@ -1311,6 +1311,10 @@ async function switchMinistry() {
                 const sectionId = activeSection.id;
                 if (sectionId === 'attendance') {
                     await refreshAttendanceView();
+                } else if (sectionId === 'ministries') {
+                    // Update the ministry list display to show new selection
+                    const ministries = CONFIG.getMinistries();
+                    updateMinistriesDisplay(ministries);
                 }
             }
         }
