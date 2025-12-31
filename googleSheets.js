@@ -1,12 +1,17 @@
 // Google Sheets API Integration with OAuth
 class GoogleSheetsAPI {
     constructor() {
-        this.spreadsheetId = CONFIG.SPREADSHEET_ID;
+        // Don't cache spreadsheet ID - read dynamically to support ministry switching
         this.baseUrl = 'https://sheets.googleapis.com/v4/spreadsheets';
         this.isOnline = navigator.onLine;
         
         // Initialize IndexedDB for offline storage
         this.initOfflineStorage();
+    }
+    
+    // Get current spreadsheet ID dynamically
+    get spreadsheetId() {
+        return CONFIG.SPREADSHEET_ID;
     }
 
     async initialize() {
