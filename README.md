@@ -33,19 +33,38 @@ View the complete application flow diagram: [workflow-diagram.mermaid](workflow-
 
 ## 🚀 Quick Start
 
-1. **Set up Private Google Sheets** with OAuth authentication (see `SETUP_GUIDE.md`)
-2. **Deploy to GitHub Pages** (instructions below) 
-3. **Install PWA on iPad** - visit your site and "Add to Home Screen"
-4. **Login with Google** to access your private church data
+1. **Share access to the Master Config spreadsheet** - Request Editor access from your church administrator
+2. **Deploy to GitHub Pages** (instructions below) or use the existing deployment
+3. **Install PWA on iPad** - visit the app site and "Add to Home Screen"
+4. **Login with Google** to access your church data
 5. **Works offline** - register families and track attendance even without internet!
 
-**🔒 Privacy**: Your data stays private in your Google account, accessible only to authorized users.
+**🔒 Privacy**: OAuth Client ID and Master Config spreadsheet are pre-configured. Your ministry data stays private with Google Sheet permissions controlled by your church administrator.
 
 ## Setup Instructions
 
-### 1. Create Google Sheets
+### For Ministry Leaders (Simplified Setup)
 
-#### For Multi-Ministry Setup:
+**The app is pre-configured!** You just need:
+
+1. **Get Access**: Request Editor access to the Master Config spreadsheet from your church administrator
+2. **Add Your Ministry**: 
+   - Visit the deployed app
+   - Login with your authorized Google account
+   - Go to "Manage Ministries" 
+   - Add your ministry's spreadsheet
+3. **Start Using**: Begin registering families and tracking attendance!
+
+### For Church Administrators (Initial Setup)
+
+#### 1. Create Master Config Sheet
+
+The Master Config spreadsheet is already created and configured in the app. You just need to:
+
+1. **Share the Master Config spreadsheet** (ID: `1E6S6_cthhJ9ENZxx1bKIlHhM3vwhXG9Fpp_1pIfVNEI`) with Editor access to authorized users
+2. **Ensure the "Ministries" tab exists** with columns: Ministry Name, Spreadsheet ID
+
+#### 2. Create Ministry Spreadsheets
 
 Each ministry needs its own Google Sheet with three tabs. **Currently, you must manually create these tabs:**
 
@@ -60,12 +79,34 @@ Each ministry needs its own Google Sheet with three tabs. **Currently, you must 
 
 **📝 Note**: The app will auto-populate headers but cannot create tabs. Future improvement: implement automatic tab creation via Google Sheets API.
 
+#### 3. OAuth Configuration (Already Done!)
+
+The OAuth Client ID is pre-configured in the application:
+- **Client ID**: `266571180821-ihg48bsjbkto6njcgipa1lnqq55ohjql.apps.googleusercontent.com`
+- **Authorized Origins**: `https://retliwg.github.io`
+- **Authorized Redirect URIs**: `https://retliwg.github.io/church_registration_app/`
+
+No additional OAuth setup needed! The app is ready to use.
+
+#### 4. Grant Access to Users
+
+1. Share the Master Config spreadsheet with Editor access to all ministry leaders
+2. Share individual ministry spreadsheets with appropriate users
+3. Users login with their Google accounts - the app handles authentication automatically
+
+---
+
+### Legacy Setup Information
+
+<details>
+<summary>Click to expand detailed OAuth and Google Cloud Console setup (for reference only - already configured)</summary>
+
 #### For Single Ministry (Legacy):
 
 1. Create one spreadsheet as described above
 2. Configure directly in the app settings
 
-### 2. Set up Google OAuth & Sheets API
+#### Set up Google OAuth & Sheets API
 
 **🔐 Secure Setup with Private Spreadsheet**
 
@@ -95,23 +136,11 @@ Each ministry needs its own Google Sheet with three tabs. **Currently, you must 
    - Only users you authorize can access it
    - No need to make it public!
 
-### 3. Configure the PWA
+</details>
 
-**🔒 Secure OAuth Configuration**
+---
 
-1. **Deploy your app first** (step 4 below)
-2. **Visit the configuration page**: `https://retliwg.github.io/church_registration_app/config-setup.html`
-3. **Enter your OAuth Client ID and Spreadsheet ID**
-4. **Test the authentication** - you'll be prompted to login with Google
-5. **Authorize the app** to access your private Google Sheets
-
-**Why this is secure:**
-- ✅ **Private spreadsheet** - only authorized users can access
-- ✅ **OAuth authentication** - users login with their Google accounts
-- ✅ **No API keys in code** - uses secure OAuth flow
-- ✅ **Granular permissions** - only access to specified spreadsheet
-
-### 4. Deploy with GitHub Pages
+### Deployment
 
 Since you're already working with this GitHub repository, deploying with GitHub Pages is the easiest option:
 
@@ -211,11 +240,11 @@ Since you're already working with this GitHub repository, deploying with GitHub 
 Use this comprehensive checklist to verify all app functionality after setup:
 
 ### Initial Setup & Configuration
-- [ ] **Configuration Page Access**: Click ⚙️ settings button in header
-- [ ] **OAuth Client ID**: Enter Google OAuth Client ID and save successfully
-- [ ] **Spreadsheet ID**: Enter Google Sheets spreadsheet ID and save successfully
-- [ ] **Authentication Test**: Click "Test Authentication" and verify Google login works
-- [ ] **Redirect to Main App**: Click "Go to Main Application" and verify it loads the updated app
+- [ ] **Request Access**: Confirm you have Editor access to the Master Config spreadsheet
+- [ ] **App Access**: Visit the deployed app URL
+- [ ] **Google Login**: Sign in with your authorized Google account
+- [ ] **Add Ministry**: Navigate to "Manage Ministries" and add your ministry's spreadsheet
+- [ ] **Authentication Verification**: Verify you can access ministry data
 
 ### Authentication & Security
 - [ ] **Google Login**: Successfully sign in with Google account
@@ -370,6 +399,46 @@ _________________________
 
 ## Security Notes
 
+**🔒 Pre-Configured Security Model**
+
+This app uses a secure, pre-configured setup:
+
+- **OAuth Client ID**: Hard-coded and safe to be public
+  - Client IDs are designed to be visible in client-side apps
+  - Security comes from OAuth authentication flow, not the Client ID
+  - Redirect URIs are restricted in Google Cloud Console
+  
+- **Master Config Spreadsheet**: ID is public, but data is protected
+  - Spreadsheet ID alone does not grant access to data
+  - Users must authenticate with Google OAuth
+  - Access controlled by Google Sheet sharing permissions
+  - Only authorized users (with Editor/Viewer permissions) can access data
+
+- **Ministry Spreadsheets**: Protected by Google permissions
+  - Each ministry controls access to their own spreadsheet
+  - Data privacy maintained through Google Drive sharing settings
+  - OAuth ensures users can only access sheets they have permission for
+
+**Why this is secure:**
+- ✅ **OAuth authentication** - users must login with authorized Google accounts
+- ✅ **Permission-based access** - Google enforces sheet-level permissions
+- ✅ **No secrets exposed** - OAuth Client ID is not a secret (Client Secret would be)
+- ✅ **Redirect URI restrictions** - prevents unauthorized use of the OAuth flow
+- ✅ **HTTPS only** - all communication encrypted
+
+**Best Practices:**
+1. Share Master Config spreadsheet only with authorized ministry leaders
+2. Each ministry should control access to their own spreadsheet
+3. Regularly review who has access to your spreadsheets
+4. Use Google Workspace accounts for better admin control (optional)
+
+---
+
+### Legacy Security Information
+
+<details>
+<summary>Previous security model (for reference)</summary>
+
 - **Data Privacy Options**: 
   - **Public Spreadsheet**: Anyone with the link can view your data (but cannot edit without API key)
   - **Private Spreadsheet**: Requires a backend server - more complex but completely private
@@ -385,6 +454,10 @@ If your church registration data is sensitive, consider:
 2. Implementing the backend server approach for complete privacy
 3. Using the app only on trusted devices/networks
 4. Regularly reviewing who has access to the spreadsheet
+
+</details>
+
+---
 
 ## Customization
 
@@ -419,12 +492,16 @@ If you encounter any issues:
 - Requires updating OAuth scope to include `spreadsheets` (not just `spreadsheets.values`)
 - Reference: [Google Sheets API - Method: spreadsheets.batchUpdate](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/batchUpdate)
 
-### Master Config Sheet Integration
-**Current**: Ministries are added manually through the "Manage Ministries" UI and stored in localStorage.
+### Master Config Sheet Integration ✅ COMPLETED
+**Current**: Ministries are managed through the "Manage Ministries" UI with full Google Sheet synchronization.
 
-**Planned Enhancement**: Read ministry list from a master Google Sheet, enabling:
+**Implemented Features**:
+- MasterConfigManager class syncs ministry list with Google Sheet
 - Centralized ministry management across multiple devices
-- Automatic ministry synchronization
+- Automatic ministry synchronization via master config sheet
 - Shared configuration across church staff
 - Single source of truth for ministry spreadsheets
+- Add/remove ministries directly updates the master sheet
+
+**Note**: Currently requires manual creation of "Ministries" tab in the master config sheet.
 

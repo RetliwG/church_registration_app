@@ -333,6 +333,8 @@ function showSection(sectionName) {
     }
 }
 
+// Configuration page function - kept for backward compatibility
+// Note: OAuth Client ID and Master Config Sheet ID are now hard-coded in config.js
 function openConfiguration() {
     window.location.href = 'config-setup.html';
 }

@@ -16,10 +16,12 @@
             <h2>Configure Your Private Google Sheets Connection</h2>
             
             <div class="form-container">
-                <p>Set up secure access to your private Google Sheets using OAuth authentication. Your data stays private and only authorized users can access it.</p>
+                <p>✅ <strong>OAuth Client ID and Master Config Spreadsheet are now pre-configured!</strong></p>
+                <p>Ministry leaders can start using the app immediately - just login with your authorized Google account.</p>
                 
                 <form id="configForm">
-                    <div class="form-group">
+                    <!-- OAuth Client ID and Master Config Sheet ID are now hard-coded in config.js -->
+                    <!-- <div class="form-group">
                         <label for="oauthClientId">Google OAuth Client ID *</label>
                         <input type="text" id="oauthClientId" name="oauthClientId" required 
                                placeholder="Enter your OAuth Client ID">
@@ -31,7 +33,7 @@
                         <input type="text" id="masterConfigSheetId" name="masterConfigSheetId" required 
                                placeholder="Enter your Master Config Google Sheet ID or full URL">
                         <small>This sheet contains a list of ministries. Leave blank if using single ministry mode.</small>
-                    </div>
+                    </div> -->
                     
                     <div class="form-group" id="legacySpreadsheetGroup" style="display: none;">
                         <label for="spreadsheetId">Spreadsheet ID (Legacy Single Ministry)</label>
@@ -41,7 +43,8 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" id="saveConfigBtn" class="btn btn-primary">Save Configuration</button>
+                        <!-- Save button commented out - configuration is now hard-coded -->
+                        <!-- <button type="button" id="saveConfigBtn" class="btn btn-primary">Save Configuration</button> -->
                         <button type="button" id="testAuthBtn" class="btn btn-secondary">Test Authentication</button>
                     </div>
                 </form>

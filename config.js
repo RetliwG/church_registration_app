@@ -1,20 +1,17 @@
 // Configuration for Google Sheets API with OAuth - Secure Version
+// 
+// SECURITY NOTE: These values are intentionally hard-coded and safe to be public
+// - OAuth Client ID: Designed to be visible in client-side apps (not a secret)
+// - Master Config Sheet ID: Public identifier, but data access is controlled by Google Sheet permissions
+// - Security comes from OAuth authentication flow and Google Drive sharing permissions
+// - Only users with Editor/Viewer access to spreadsheets can access data
+//
 const CONFIG = {
-    // OAuth Configuration (set via config-setup.html)
-    get GOOGLE_OAUTH_CLIENT_ID() {
-        return localStorage.getItem('church_app_oauth_client_id') || 'NOT_CONFIGURED';
-    },
+    // OAuth Configuration (hard-coded for ease of use - safe to be public)
+    GOOGLE_OAUTH_CLIENT_ID: '266571180821-ihg48bsjbkto6njcgipa1lnqq55ohjql.apps.googleusercontent.com',
     
-    // Master Config Sheet ID (contains list of ministries)
-    get MASTER_CONFIG_SHEET_ID() {
-        const id = localStorage.getItem('church_app_master_config_sheet_id');
-        // Extract just the ID if full URL was provided
-        if (id && id.includes('/d/')) {
-            const match = id.match(/\/d\/([a-zA-Z0-9-_]+)/);
-            return match ? match[1] : id;
-        }
-        return id || 'NOT_CONFIGURED';
-    },
+    // Master Config Sheet ID (contains list of ministries - hard-coded)
+    MASTER_CONFIG_SHEET_ID: '1E6S6_cthhJ9ENZxx1bKIlHhM3vwhXG9Fpp_1pIfVNEI',
     
     // Currently selected ministry
     get SELECTED_MINISTRY() {
@@ -60,8 +57,7 @@ const CONFIG = {
     
     // Check if configuration is complete
     isConfigured() {
-        return this.GOOGLE_OAUTH_CLIENT_ID !== 'NOT_CONFIGURED' && 
-               this.MASTER_CONFIG_SHEET_ID !== 'NOT_CONFIGURED';
+        return this.GOOGLE_OAUTH_CLIENT_ID && this.MASTER_CONFIG_SHEET_ID;
     },
     
     // Check if user is authenticated
