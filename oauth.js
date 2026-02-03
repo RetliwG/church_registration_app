@@ -92,12 +92,6 @@ class OAuthManager {
             throw error;
         }
     }
-            });
-        } catch (error) {
-            console.error('Sign-in failed:', error);
-            throw error;
-        }
-    }
 
     async signOut() {
         try {
