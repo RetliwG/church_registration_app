@@ -988,30 +988,6 @@ function showAuthenticationRequired() {
 async function handleSignIn() {
     console.log('handleSignIn called');
     try {
-        // Check if running in standalone mode (iOS home screen app)
-        const isStandalone = window.navigator.standalone === true || 
-                            window.matchMedia('(display-mode: standalone)').matches;
-        
-        if (isStandalone) {
-            console.log('Standalone mode detected');
-            // In standalone mode on iOS, OAuth popups don't work well
-            // We need to open in Safari for authentication
-            const confirmed = confirm(
-                'To sign in, we need to open Safari.\n\n' +
-                'After signing in, you can return to this app.\n\n' +
-                'Press OK to continue.'
-            );
-            
-            if (confirmed) {
-                // Open the current URL in Safari
-                window.location.href = window.location.href;
-                return;
-            } else {
-                hideLoading();
-                return;
-            }
-        }
-        
         showLoading();
         
         if (!oauthManager) {
@@ -1020,33 +996,10 @@ async function handleSignIn() {
             await oauthManager.initialize();
         }
         
-        console.log('Attempting sign in...');
-        const success = await oauthManager.signIn();
-        console.log('Sign in result:', success);
+        console.log('Redirecting to Google OAuth...');
+        // This will redirect the page, so code after this won't execute
+        await oauthManager.signIn();
         
-        if (success) {
-            showMessage('Signed in successfully!', 'success');
-            console.log('Removing auth content...');
-            
-            // Remove auth content and restore sections
-            const authDiv = document.getElementById('authContent');
-            if (authDiv) {
-                authDiv.remove();
-                console.log('Auth content removed');
-            }
-            
-            // Show all sections again
-            const sections = document.querySelectorAll('.section');
-            console.log('Restoring sections:', sections.length);
-            sections.forEach(section => section.style.display = 'block');
-            
-            // Reinitialize the app
-            console.log('Reinitializing app...');
-            await initializeApp();
-        } else {
-            hideLoading();
-            showMessage('Sign-in was cancelled or failed.', 'error');
-        }
     } catch (error) {
         hideLoading();
         console.error('Sign-in error:', error);
