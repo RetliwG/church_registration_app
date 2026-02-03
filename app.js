@@ -169,13 +169,22 @@ async function initializeApp() {
     } catch (error) {
         hideLoading();
         console.error('Error initializing app:', error);
-        if (error.message.includes('API key') || error.message.includes('credentials')) {
+        
+        // Check if this is an authentication error
+        if (error.message.includes('auth') || error.message.includes('token') || 
+            error.message.includes('401') || error.message.includes('403') ||
+            error.message.includes('credentials') || error.message.includes('unauthorized')) {
+            console.log('Authentication error detected, prompting for sign-in');
+            showAuthenticationRequired();
+        } else if (error.message.includes('API key')) {
             showMessage('Configuration error. Please check your setup.', 'error');
             setTimeout(() => {
                 window.location.href = 'config-setup.html';
             }, 3000);
         } else {
-            showMessage('Error initializing application. Please check your Google Sheets configuration.', 'error');
+            // Generic error - might be auth related, show sign-in prompt
+            console.log('Generic error, showing authentication prompt as fallback');
+            showAuthenticationRequired();
         }
     }
 }

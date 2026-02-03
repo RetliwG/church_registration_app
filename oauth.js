@@ -32,6 +32,9 @@ class OAuthManager {
             if (this.isTokenValid()) {
                 this.accessToken = localStorage.getItem('church_app_auth_token');
                 this.currentUser = { signedIn: true };
+                console.log('Valid token found in storage');
+            } else {
+                console.log('No valid token found or token expired');
             }
 
         } catch (error) {
