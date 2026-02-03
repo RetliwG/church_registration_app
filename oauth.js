@@ -65,9 +65,22 @@ class OAuthManager {
                 await this.initialize();
             }
 
+            // Check if running in standalone mode (iOS home screen app)
+            const isStandalone = window.navigator.standalone === true || 
+                                window.matchMedia('(display-mode: standalone)').matches;
+            
+            if (isStandalone) {
+                console.log('Standalone mode detected - using prompt mode');
+                // In standalone mode, use prompt instead of popup
+                this.tokenClient.requestAccessToken({ prompt: '' });
+            } else {
+                this.tokenClient.requestAccessToken({ prompt: 'consent' });
+            }
+
             return new Promise((resolve, reject) => {
                 this.tokenClient.callback = (response) => {
                     if (response.error) {
+                        console.error('OAuth callback error:', response.error);
                         reject(new Error(response.error));
                         return;
                     }
@@ -77,7 +90,18 @@ class OAuthManager {
                     resolve(true);
                 };
                 
-                this.tokenClient.requestAccessToken();
+                // Set a timeout for the auth process
+                setTimeout(() => {
+                    if (!this.accessToken) {
+                        reject(new Error('Authentication timeout'));
+                    }
+                }, 30000); // 30 second timeout
+            });
+        } catch (error) {
+            console.error('Sign-in failed:', error);
+            throw error;
+        }
+    }
             });
         } catch (error) {
             console.error('Sign-in failed:', error);

@@ -988,6 +988,30 @@ function showAuthenticationRequired() {
 async function handleSignIn() {
     console.log('handleSignIn called');
     try {
+        // Check if running in standalone mode (iOS home screen app)
+        const isStandalone = window.navigator.standalone === true || 
+                            window.matchMedia('(display-mode: standalone)').matches;
+        
+        if (isStandalone) {
+            console.log('Standalone mode detected');
+            // In standalone mode on iOS, OAuth popups don't work well
+            // We need to open in Safari for authentication
+            const confirmed = confirm(
+                'To sign in, we need to open Safari.\n\n' +
+                'After signing in, you can return to this app.\n\n' +
+                'Press OK to continue.'
+            );
+            
+            if (confirmed) {
+                // Open the current URL in Safari
+                window.location.href = window.location.href;
+                return;
+            } else {
+                hideLoading();
+                return;
+            }
+        }
+        
         showLoading();
         
         if (!oauthManager) {
