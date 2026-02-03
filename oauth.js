@@ -72,14 +72,19 @@ class OAuthManager {
 
             console.log('Starting OAuth redirect flow...');
             
+            // Use the exact redirect URI configured in Google Cloud Console
+            const redirectUri = 'https://retliwg.github.io/church_registration_app/';
+            
             // Build OAuth URL for redirect flow
             const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
             authUrl.searchParams.append('client_id', CONFIG.GOOGLE_OAUTH_CLIENT_ID);
-            authUrl.searchParams.append('redirect_uri', window.location.origin + window.location.pathname);
+            authUrl.searchParams.append('redirect_uri', redirectUri);
             authUrl.searchParams.append('response_type', 'token');
             authUrl.searchParams.append('scope', CONFIG.OAUTH_SCOPES);
             authUrl.searchParams.append('include_granted_scopes', 'true');
             authUrl.searchParams.append('state', 'signin');
+
+            console.log('Redirecting to:', authUrl.toString());
 
             // Redirect to Google OAuth
             window.location.href = authUrl.toString();
