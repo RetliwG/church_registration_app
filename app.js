@@ -639,15 +639,25 @@ function loadChildForEditing(childId) {
             document.getElementById(`childFirstName${formId}`).value = sibling.firstName || '';
             document.getElementById(`childLastName${formId}`).value = sibling.lastName || '';
             
-            // Convert date format from M/D/YYYY to YYYY-MM-DD for input field
+            // Convert date format to YYYY-MM-DD for input field
+            // Handle both formats: M/D/YYYY and YYYY-MM-DD
             let formattedDate = '';
             if (sibling.dateOfBirth) {
-                const dateParts = sibling.dateOfBirth.split('/');
-                if (dateParts.length === 3) {
-                    const month = dateParts[0].padStart(2, '0');
-                    const day = dateParts[1].padStart(2, '0');
-                    const year = dateParts[2];
-                    formattedDate = `${year}-${month}-${day}`;
+                const dateStr = sibling.dateOfBirth.trim();
+                
+                // Check if already in YYYY-MM-DD format
+                if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    formattedDate = dateStr;
+                }
+                // Check if in M/D/YYYY or MM/DD/YYYY format
+                else if (dateStr.includes('/')) {
+                    const dateParts = dateStr.split('/');
+                    if (dateParts.length === 3) {
+                        const month = dateParts[0].padStart(2, '0');
+                        const day = dateParts[1].padStart(2, '0');
+                        const year = dateParts[2];
+                        formattedDate = `${year}-${month}-${day}`;
+                    }
                 }
             }
             document.getElementById(`childDOB${formId}`).value = formattedDate;
