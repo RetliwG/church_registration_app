@@ -441,18 +441,15 @@ function addChildForm() {
         
         <div class="form-row">
             <div class="form-group">
-                <label for="mediaConsent${childFormCounter}">
-                    Media Consent 
-                    <span class="info-icon" title="Do you consent to the appropriate use by us of photographs taken on the program that include your child? (For example, inclusion in our newspaper or in our brochure or placement on our web page)">ℹ️</span>
-                </label>
+                <label for="mediaConsent${childFormCounter}">Media Consent</label>
+                <small class="field-description">Do you consent to the appropriate use by us of photographs taken on the program that include your child? (For example, inclusion in our newspaper or in our brochure or placement on our web page)</small>
                 <input type="text" id="mediaConsent${childFormCounter}" name="mediaConsent" placeholder="e.g., Yes, No, or specify reasons">
-                <small>Do you consent to the appropriate use by us of photographs taken on the program that include your child? (For example, inclusion in our newspaper or in our brochure or placement on our web page)</small>
             </div>
         </div>
         
         <div class="form-group">
             <label for="childOtherInfo${childFormCounter}">Medical & Other Information</label>
-            <small>Are there any medical or psychological conditions which require special attention that we should know about e.g. diabetes, asthma, allergy to bee-sting, other allergies including food, hearing or sight impairment, ADHD, behavioural issues, formal counselling situations, or any other? Please list below:</small>
+            <small class="field-description">Are there any medical or psychological conditions which require special attention that we should know about e.g. diabetes, asthma, allergy to bee-sting, other allergies including food, hearing or sight impairment, ADHD, behavioural issues, formal counselling situations, or any other? Please list below:</small>
             <textarea id="childOtherInfo${childFormCounter}" name="childOtherInfo" rows="3"></textarea>
         </div>
     `;
