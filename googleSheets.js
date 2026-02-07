@@ -585,11 +585,15 @@ class DataManager {
             this.cache.parents = parentData.slice(1).map((row, index) => ({
                 id: index + 2, // Row number in sheet (1-indexed + header)
                 name: row[0] || '',
-                phone1: row[1] || '',
-                phone2: row[2] || '',
-                email: row[3] || '',
-                address: row[4] || '',
-                registrationDate: row[5] || ''
+                relationship: row[1] || '',
+                phone1: row[2] || '',
+                phone2: row[3] || '',
+                email: row[4] || '',
+                address: row[5] || '',
+                collector: row[6] || '',
+                disclaimerAgreed: row[7] === 'Yes',
+                registrationDate: row[8] || '',
+                lastUpdated: row[9] || ''
             }));
 
             // Parse children (skip header row)
@@ -603,7 +607,8 @@ class DataManager {
                 otherInfo: row[5] || '',
                 registrationDate: row[6] || '',
                 dateOfBirth: row[7] || '',
-                age: this.calculateAge(row[7])
+                age: this.calculateAge(row[7]),
+                lastUpdated: row[9] || ''
             }));
 
             // Parse sign-ins (skip header row)

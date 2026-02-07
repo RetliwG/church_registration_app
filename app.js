@@ -342,11 +342,12 @@ function showSection(sectionName) {
     }
 }
 
-// Configuration page function - kept for backward compatibility
-// Note: OAuth Client ID and Master Config Sheet ID are now hard-coded in config.js
-function openConfiguration() {
-    window.location.href = 'config-setup.html';
-}
+// LEGACY FUNCTION - Configuration button is commented out in index.html
+// Configuration (OAuth Client ID and Master Config Sheet ID) is now hard-coded in config.js
+// Kept for backward compatibility if config-setup page is accessed directly
+// function openConfiguration() {
+//     window.location.href = 'config-setup.html';
+// }
 
 function initializeMobileHandling() {
     
@@ -611,10 +612,13 @@ function loadChildForEditing(childId) {
         
         // Populate parent information
         document.getElementById('parentName').value = parent.name || '';
+        document.getElementById('parentRelationship').value = parent.relationship || '';
         document.getElementById('parentPhone1').value = parent.phone1 || '';
         document.getElementById('parentPhone2').value = parent.phone2 || '';
         document.getElementById('parentEmail').value = parent.email || '';
         document.getElementById('parentAddress').value = parent.address || '';
+        document.getElementById('parentCollector').value = parent.collector || '';
+        document.getElementById('disclaimerAgree').checked = parent.disclaimerAgreed || false;
         
         // Get all children for this parent
         const siblings = dataManager.getChildrenByParentId(child.parentId);
@@ -1131,7 +1135,7 @@ function showConfigurationRequired(missing) {
 
 // Make functions available globally for onclick handlers
 window.showSection = showSection;
-window.openConfiguration = openConfiguration;
+// window.openConfiguration = openConfiguration; // LEGACY - config button is commented out in HTML
 window.removeChildForm = removeChildForm;
 window.removeSelectedChild = removeSelectedChild;
 window.signOutFromAttendance = signOutFromAttendance;
