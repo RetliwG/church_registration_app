@@ -852,11 +852,13 @@ nav {
     cursor: pointer;
     margin: 0;
     flex-shrink: 0;
+    vertical-align: middle;
 }
 
 .checkbox-label span {
     user-select: none;
     white-space: nowrap;
+    line-height: 20px;
 }
 
 /* Form Help Text */
