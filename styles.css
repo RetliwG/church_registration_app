@@ -838,13 +838,12 @@ nav {
 }
 
 .checkbox-label {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
     cursor: pointer;
     font-weight: 600;
     color: #495057;
-    justify-content: center;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -853,15 +852,11 @@ nav {
     cursor: pointer;
     margin: 0;
     flex-shrink: 0;
-    position: relative;
-    top: 0;
 }
 
 .checkbox-label span {
     user-select: none;
-    line-height: 1;
-    position: relative;
-    top: -1px;
+    white-space: nowrap;
 }
 
 /* Form Help Text */
