@@ -88,11 +88,15 @@ const CONFIG = {
 const COLUMNS = {
     PARENTS: {
         NAME: 'A',
-        PHONE1: 'B', 
-        PHONE2: 'C',
-        EMAIL: 'D',
-        ADDRESS: 'E',
-        REGISTRATION_DATE: 'F'
+        RELATIONSHIP: 'B',
+        PHONE1: 'C', 
+        PHONE2: 'D',
+        EMAIL: 'E',
+        ADDRESS: 'F',
+        COLLECTOR: 'G',
+        DISCLAIMER_AGREED: 'H',
+        REGISTRATION_DATE: 'I',
+        LAST_UPDATED: 'J'
     },
     CHILDREN: {
         PARENT_ID: 'A',
@@ -103,7 +107,8 @@ const COLUMNS = {
         OTHER_INFO: 'F',
         REGISTRATION_DATE: 'G',
         DATE_OF_BIRTH: 'H',
-        AGE: 'I'
+        AGE: 'I',
+        LAST_UPDATED: 'J'
     },
     SIGNIN: {
         SIGNIN_TIMESTAMP: 'A',

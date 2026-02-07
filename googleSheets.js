@@ -661,13 +661,18 @@ class DataManager {
         try {
             showLoading();
             
+            const timestamp = new Date().toLocaleDateString();
             const row = [
                 parentData.name,
+                parentData.relationship,
                 parentData.phone1,
                 parentData.phone2,
                 parentData.email,
                 parentData.address,
-                new Date().toLocaleDateString()
+                parentData.collector,
+                parentData.disclaimerAgreed ? 'Yes' : 'No',
+                timestamp, // Registration date
+                timestamp  // Last updated
             ];
 
             await this.sheetsAPI.appendSheet(CONFIG.SHEETS.PARENTS, [row]);
@@ -677,11 +682,15 @@ class DataManager {
             const newParent = {
                 id: newParentId,
                 name: parentData.name,
+                relationship: parentData.relationship,
                 phone1: parentData.phone1,
                 phone2: parentData.phone2,
                 email: parentData.email,
                 address: parentData.address,
-                registrationDate: new Date().toLocaleDateString()
+                collector: parentData.collector,
+                disclaimerAgreed: parentData.disclaimerAgreed,
+                registrationDate: timestamp,
+                lastUpdated: timestamp
             };
             this.cache.parents.push(newParent);
             
@@ -700,6 +709,7 @@ class DataManager {
     async saveChild(childData) {
         try {
             const age = this.calculateAge(childData.dateOfBirth);
+            const timestamp = new Date().toLocaleDateString();
             
             const row = [
                 childData.parentId,
@@ -708,9 +718,10 @@ class DataManager {
                 childData.gender,
                 childData.mediaConsent,
                 childData.otherInfo,
-                new Date().toLocaleDateString(),
+                timestamp, // Registration date
                 childData.dateOfBirth,
-                age
+                age,
+                timestamp  // Last updated
             ];
 
             await this.sheetsAPI.appendSheet(CONFIG.SHEETS.CHILDREN, [row]);
@@ -725,9 +736,10 @@ class DataManager {
                 gender: childData.gender,
                 mediaConsent: childData.mediaConsent,
                 otherInfo: childData.otherInfo,
-                registrationDate: new Date().toLocaleDateString(),
+                registrationDate: timestamp,
                 dateOfBirth: childData.dateOfBirth,
-                age: age
+                age: age,
+                lastUpdated: timestamp
             };
             this.cache.children.push(newChild);
             
@@ -743,16 +755,22 @@ class DataManager {
         try {
             // parentData should include id
             const rowNumber = parentData.id;
-            const range = `A${rowNumber}:F${rowNumber}`;
+            const range = `A${rowNumber}:J${rowNumber}`;
+            
+            const existingParent = this.cache.parents.find(p => p.id === parentData.id);
+            const timestamp = new Date().toLocaleDateString();
             
             const row = [
                 parentData.name,
+                parentData.relationship,
                 parentData.phone1,
                 parentData.phone2,
                 parentData.email,
                 parentData.address,
-                // Keep original registration date - read it first or use existing
-                this.cache.parents.find(p => p.id === parentData.id)?.registrationDate || new Date().toLocaleDateString()
+                parentData.collector,
+                parentData.disclaimerAgreed ? 'Yes' : 'No',
+                existingParent?.registrationDate || timestamp, // Keep original registration date
+                timestamp // Update last updated
             ];
 
             await this.sheetsAPI.writeSheet(CONFIG.SHEETS.PARENTS, range, [row]);
@@ -763,10 +781,14 @@ class DataManager {
                 this.cache.parents[parentIndex] = {
                     ...this.cache.parents[parentIndex],
                     name: parentData.name,
+                    relationship: parentData.relationship,
                     phone1: parentData.phone1,
                     phone2: parentData.phone2,
                     email: parentData.email,
-                    address: parentData.address
+                    address: parentData.address,
+                    collector: parentData.collector,
+                    disclaimerAgreed: parentData.disclaimerAgreed,
+                    lastUpdated: timestamp
                 };
             }
             
@@ -782,7 +804,10 @@ class DataManager {
             // childData should include id
             const rowNumber = childData.id;
             const age = this.calculateAge(childData.dateOfBirth);
-            const range = `A${rowNumber}:I${rowNumber}`;
+            const range = `A${rowNumber}:J${rowNumber}`;
+            const timestamp = new Date().toLocaleDateString();
+            
+            const existingChild = this.cache.children.find(c => c.id === childData.id);
             
             const row = [
                 childData.parentId,
@@ -791,10 +816,10 @@ class DataManager {
                 childData.gender,
                 childData.mediaConsent,
                 childData.otherInfo,
-                // Keep original registration date
-                this.cache.children.find(c => c.id === childData.id)?.registrationDate || new Date().toLocaleDateString(),
+                existingChild?.registrationDate || timestamp, // Keep original registration date
                 childData.dateOfBirth,
-                age
+                age,
+                timestamp // Update last updated
             ];
 
             await this.sheetsAPI.writeSheet(CONFIG.SHEETS.CHILDREN, range, [row]);
@@ -811,7 +836,8 @@ class DataManager {
                     mediaConsent: childData.mediaConsent,
                     otherInfo: childData.otherInfo,
                     dateOfBirth: childData.dateOfBirth,
-                    age: age
+                    age: age,
+                    lastUpdated: timestamp
                 };
             }
             

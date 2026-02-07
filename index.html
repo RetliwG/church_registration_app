@@ -63,6 +63,13 @@
                         <input type="text" id="parentName" name="parentName" required>
                     </div>
                     
+                    <div class="form-group">
+                        <label for="parentRelationship">Relationship to Child *</label>
+                        <input type="text" id="parentRelationship" name="parentRelationship" placeholder="e.g., Mother, Father, Guardian" required>
+                    </div>
+                    
+                    <p class="form-help-text">In the case of an emergency, please list the phone numbers where you and another trusted adult may be contacted during the course of the program. The first phone number will be tried followed by the second.</p>
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="parentPhone1">Phone 1 *</label>
@@ -83,6 +90,12 @@
                         <label for="parentAddress">Address *</label>
                         <textarea id="parentAddress" name="parentAddress" rows="3" required></textarea>
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="parentCollector">Who will collect your child(ren) at the end of the program?</label>
+                        <input type="text" id="parentCollector" name="parentCollector" placeholder="Leave blank to default to parent name">
+                        <small>Please nominate either yourself or another trusted adult</small>
+                    </div>
                 </form>
             </div>
 
@@ -95,6 +108,23 @@
                 <button type="button" id="addChildBtn" class="btn btn-secondary">Add Child</button>
             </div>
 
+            <!-- Disclaimer Agreement -->
+            <div class="form-container">
+                <h3>Important Information & Agreement</h3>
+                <div class="disclaimer-text">
+                    <p>It will be great to see your child join in the activities we have planned. In order for us to provide the best level of care while your child is under our supervision, we require that you fill out this registration page. This form only needs to be filled out once per family. The information provided will be treated confidentially within our team.</p>
+                    
+                    <p>I understand that although the leaders will take all reasonable care to ensure both the comfort and safety of my child, there is still a risk that an accident may occur.</p>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="disclaimerAgree" name="disclaimerAgree" required>
+                        <span>I agree *</span>
+                    </label>
+                </div>
+            </div>
+            
             <div class="form-actions">
                 <button type="button" id="saveRegistrationBtn" class="btn btn-primary">Save Registration</button>
                 <button type="button" id="clearFormBtn" class="btn btn-secondary">Clear Form</button>
@@ -188,9 +218,9 @@
     <div id="messageContainer" class="message-container"></div>
 
     <!-- Scripts -->
-    <script src="config.js?v=27&t=1738560200"></script>
-    <script src="oauth.js?v=27&t=1738560200"></script>
-    <script src="googleSheets.js?v=27&t=1738560200"></script>
-    <script src="app.js?v=27&t=1738560200"></script>
+    <script src="config.js?v=28&t=1738982400"></script>
+    <script src="oauth.js?v=28&t=1738982400"></script>
+    <script src="googleSheets.js?v=28&t=1738982400"></script>
+    <script src="app.js?v=28&t=1738982400"></script>
 </body>
 </html>

@@ -813,3 +813,81 @@ nav {
         width: 100%;
     }
 }
+
+/* Disclaimer and Agreement Styles */
+.disclaimer-text {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.disclaimer-text p {
+    margin-bottom: 15px;
+    color: #495057;
+}
+
+.disclaimer-text p:last-child {
+    margin-bottom: 0;
+}
+
+.checkbox-group {
+    margin-top: 15px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #495057;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.checkbox-label span {
+    user-select: none;
+}
+
+/* Info Icon Styles */
+.info-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: help;
+    margin-left: 5px;
+}
+
+/* Form Help Text */
+.form-help-text {
+    background: #e7f3ff;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border-left: 3px solid #007bff;
+    margin: 15px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #495057;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: #6c757d;
+    line-height: 1.4;
+}

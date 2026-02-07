@@ -441,14 +441,19 @@ function addChildForm() {
         
         <div class="form-row">
             <div class="form-group">
-                <label for="mediaConsent${childFormCounter}">Media Consent</label>
+                <label for="mediaConsent${childFormCounter}">
+                    Media Consent 
+                    <span class="info-icon" title="Do you consent to the appropriate use by us of photographs taken on the program that include your child? (For example, inclusion in our newspaper or in our brochure or placement on our web page)">ℹ️</span>
+                </label>
                 <input type="text" id="mediaConsent${childFormCounter}" name="mediaConsent" placeholder="e.g., Yes, No, or specify reasons">
+                <small>Do you consent to the appropriate use by us of photographs taken on the program that include your child? (For example, inclusion in our newspaper or in our brochure or placement on our web page)</small>
             </div>
         </div>
         
         <div class="form-group">
-            <label for="childOtherInfo${childFormCounter}">Other Information</label>
-            <textarea id="childOtherInfo${childFormCounter}" name="childOtherInfo" rows="2"></textarea>
+            <label for="childOtherInfo${childFormCounter}">Medical & Other Information</label>
+            <small>Are there any medical or psychological conditions which require special attention that we should know about e.g. diabetes, asthma, allergy to bee-sting, other allergies including food, hearing or sight impairment, ADHD, behavioural issues, formal counselling situations, or any other? Please list below:</small>
+            <textarea id="childOtherInfo${childFormCounter}" name="childOtherInfo" rows="3"></textarea>
         </div>
     `;
     
@@ -479,13 +484,26 @@ async function saveRegistration() {
             return;
         }
         
+        // Validate disclaimer agreement
+        const disclaimerAgree = document.getElementById('disclaimerAgree');
+        if (!disclaimerAgree.checked) {
+            hideLoading();
+            showMessage('Please agree to the disclaimer before submitting.', 'error');
+            disclaimerAgree.focus();
+            return;
+        }
+        
         // Get parent data
+        const parentName = document.getElementById('parentName').value.trim();
         const parentData = {
-            name: document.getElementById('parentName').value.trim(),
+            name: parentName,
+            relationship: document.getElementById('parentRelationship').value.trim(),
             phone1: document.getElementById('parentPhone1').value.trim(),
             phone2: document.getElementById('parentPhone2').value.trim(),
             email: document.getElementById('parentEmail').value.trim(),
-            address: document.getElementById('parentAddress').value.trim()
+            address: document.getElementById('parentAddress').value.trim(),
+            collector: document.getElementById('parentCollector').value.trim() || parentName,
+            disclaimerAgreed: disclaimerAgree.checked
         };
         
         // Save or update parent
@@ -556,6 +574,9 @@ async function saveRegistration() {
 function clearRegistrationForm() {
     // Clear parent form
     document.getElementById('parentForm').reset();
+    
+    // Clear disclaimer checkbox
+    document.getElementById('disclaimerAgree').checked = false;
     
     // Clear edit mode
     editingParentId = null;
