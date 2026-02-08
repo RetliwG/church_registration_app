@@ -723,14 +723,11 @@ async function saveRegistration() {
             const existingChildId = editingChildIds.get(formId);
             if (existingChildId) {
                 // Update existing child
-                console.log(`Updating child ${existingChildId}: ${firstName} ${lastName}`);
                 childData.id = existingChildId;
                 await dataManager.updateChild(childData);
             } else {
                 // Create new child - must be sequential to avoid ID conflicts
-                console.log(`Creating new child: ${firstName} ${lastName}`);
-                const newChildId = await dataManager.saveChild(childData);
-                console.log(`Created child with ID: ${newChildId}`);
+                await dataManager.saveChild(childData);
             }
         }
         
