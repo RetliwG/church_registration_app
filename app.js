@@ -1043,15 +1043,24 @@ function updateAttendanceTable(signInRecords) {
     }
     
     tbody.innerHTML = signInRecords.map(record => {
-        const child = dataManager.getChildById(record.childId);
         const parent = dataManager.getParentById(record.parentId);
+        
+        // Get parent2 if exists (from record, no child lookup needed)
+        const parent2 = record.parent2Id ? dataManager.getParentById(record.parent2Id) : null;
+        
+        // Build parent names display
+        let parentNames = 'Unknown';
+        if (parent) {
+            if (parent2) {
+                parentNames = `${parent.name} & ${parent2.name}`;
+            } else {
+                parentNames = parent.name;
+            }
+        }
         
         // Get parent phone numbers
         let phoneDisplay = 'N/A';
         if (parent) {
-            // Get parent2 if exists
-            const parent2 = child && child.parent2Id ? dataManager.getParentById(child.parent2Id) : null;
-            
             if (parent2) {
                 // Show both parent phones
                 phoneDisplay = `${parent.phone1 || 'N/A'} (Primary) or ${parent2.phone1 || 'N/A'}`;
@@ -1064,7 +1073,7 @@ function updateAttendanceTable(signInRecords) {
         return `
             <tr>
                 <td>${record.childFullName}</td>
-                <td>${parent ? parent.name : 'Unknown'}</td>
+                <td>${parentNames}</td>
                 <td>${phoneDisplay}</td>
                 <td>
                     <button type="button" class="btn btn-primary" onclick="loadChildForEditing(${record.childId})" style="margin-right: 10px;">

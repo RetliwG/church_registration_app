@@ -118,8 +118,9 @@ const COLUMNS = {
         SIGNOUT_TIMESTAMP: 'B',
         CHILD_ID: 'C',
         PARENT_ID: 'D',
-        CHILD_FULL_NAME: 'E',
-        DATE: 'F'
+        PARENT2_ID: 'E',
+        CHILD_FULL_NAME: 'F',
+        DATE: 'G'
     }
 };
 

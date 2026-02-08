@@ -620,8 +620,9 @@ class DataManager {
                     signOutTimestamp: row[1] || '',
                     childId: parseInt(row[2]) || 0,
                     parentId: parseInt(row[3]) || 0,
-                    childFullName: row[4] || '',
-                    date: row[5] || ''
+                    parent2Id: parseInt(row[4]) || 0,
+                    childFullName: row[5] || '',
+                    date: row[6] || ''
                 };
             });
 
@@ -898,6 +899,7 @@ class DataManager {
                 '', // Sign out timestamp (empty for now)
                 childId,
                 child.parentId,
+                child.parent2Id || '', // Second parent ID
                 `${child.firstName} ${child.lastName}`,
                 date
             ];
@@ -912,6 +914,7 @@ class DataManager {
                 signOutTimestamp: '',
                 childId: childId,
                 parentId: child.parentId,
+                parent2Id: child.parent2Id || 0,
                 childFullName: `${child.firstName} ${child.lastName}`,
                 date: date
             };
