@@ -99,18 +99,19 @@ const COLUMNS = {
         LAST_UPDATED: 'J'
     },
     CHILDREN: {
-        PARENT_ID: 'A',
-        PARENT2_ID: 'B',
-        FIRST_NAME: 'C',
-        LAST_NAME: 'D', 
-        GENDER: 'E',
-        MEDIA_CONSENT: 'F',
-        OTHER_INFO: 'G',
-        COLLECTOR: 'H',
-        REGISTRATION_DATE: 'I',
-        DATE_OF_BIRTH: 'J',
-        AGE: 'K',
-        LAST_UPDATED: 'L'
+        CHILD_ID: 'A',
+        PARENT_ID: 'B',
+        PARENT2_ID: 'C',
+        FIRST_NAME: 'D',
+        LAST_NAME: 'E', 
+        GENDER: 'F',
+        MEDIA_CONSENT: 'G',
+        OTHER_INFO: 'H',
+        COLLECTOR: 'I',
+        REGISTRATION_DATE: 'J',
+        DATE_OF_BIRTH: 'K',
+        AGE: 'L',
+        LAST_UPDATED: 'M'
     },
     SIGNIN: {
         SIGNIN_TIMESTAMP: 'A',

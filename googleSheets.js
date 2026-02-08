@@ -597,19 +597,19 @@ class DataManager {
 
             // Parse children (skip header row)
             this.cache.children = childData.slice(1).map((row, index) => ({
-                id: index + 2, // Row number in sheet
-                parentId: parseInt(row[0]) || 0,
-                parent2Id: parseInt(row[1]) || 0,
-                firstName: row[2] || '',
-                lastName: row[3] || '',
-                gender: row[4] || '',
-                mediaConsent: row[5] || '',
-                otherInfo: row[6] || '',
-                collector: row[7] || '',
-                registrationDate: row[8] || '',
-                dateOfBirth: row[9] || '',
-                age: this.calculateAge(row[9]),
-                lastUpdated: row[11] || ''
+                id: parseInt(row[0]) || (index + 2), // Use explicit Child ID from column A, fallback to row number
+                parentId: parseInt(row[1]) || 0,
+                parent2Id: parseInt(row[2]) || 0,
+                firstName: row[3] || '',
+                lastName: row[4] || '',
+                gender: row[5] || '',
+                mediaConsent: row[6] || '',
+                otherInfo: row[7] || '',
+                collector: row[8] || '',
+                registrationDate: row[9] || '',
+                dateOfBirth: row[10] || '',
+                age: this.calculateAge(row[10]),
+                lastUpdated: row[12] || ''
             }));
 
             // Parse sign-ins (skip header row)
@@ -720,7 +720,12 @@ class DataManager {
             const age = this.calculateAge(childData.dateOfBirth);
             const timestamp = new Date().toLocaleDateString();
             
+            // Generate new child ID (max existing ID + 1)
+            const maxId = this.cache.children.reduce((max, c) => Math.max(max, c.id), 0);
+            const newChildId = maxId + 1;
+            
             const row = [
+                newChildId, // Child ID
                 childData.parentId,
                 childData.parent2Id || '', // Second parent ID
                 childData.firstName,
@@ -738,7 +743,6 @@ class DataManager {
             await this.sheetsAPI.appendSheet(CONFIG.SHEETS.CHILDREN, [row]);
             
             // Optimize: Add to cache locally instead of full refresh
-            const newChildId = this.cache.children.length + 2; // Row number in sheet
             const newChild = {
                 id: newChildId,
                 parentId: childData.parentId,
@@ -821,14 +825,23 @@ class DataManager {
     async updateChild(childData) {
         try {
             // childData should include id
-            const rowNumber = childData.id;
+            const childId = childData.id;
+            
+            // Find the row number for this child ID
+            const childIndex = this.cache.children.findIndex(c => c.id === childId);
+            if (childIndex === -1) {
+                throw new Error(`Child with ID ${childId} not found`);
+            }
+            const rowNumber = childIndex + 2; // +2 for 1-indexed and header row
+            
             const age = this.calculateAge(childData.dateOfBirth);
-            const range = `A${rowNumber}:L${rowNumber}`;
+            const range = `A${rowNumber}:M${rowNumber}`;
             const timestamp = new Date().toLocaleDateString();
             
-            const existingChild = this.cache.children.find(c => c.id === childData.id);
+            const existingChild = this.cache.children[childIndex];
             
             const row = [
+                childId, // Child ID (keep the same)
                 childData.parentId,
                 childData.parent2Id || '',
                 childData.firstName,
@@ -846,7 +859,6 @@ class DataManager {
             await this.sheetsAPI.writeSheet(CONFIG.SHEETS.CHILDREN, range, [row]);
             
             // Update cache
-            const childIndex = this.cache.children.findIndex(c => c.id === childData.id);
             if (childIndex !== -1) {
                 this.cache.children[childIndex] = {
                     ...this.cache.children[childIndex],
@@ -864,7 +876,7 @@ class DataManager {
                 };
             }
             
-            return childData.id;
+            return childId;
         } catch (error) {
             console.error('Error updating child:', error);
             throw error;

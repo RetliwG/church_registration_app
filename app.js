@@ -1046,11 +1046,26 @@ function updateAttendanceTable(signInRecords) {
         const child = dataManager.getChildById(record.childId);
         const parent = dataManager.getParentById(record.parentId);
         
+        // Get parent phone numbers
+        let phoneDisplay = 'N/A';
+        if (parent) {
+            // Get parent2 if exists
+            const parent2 = child && child.parent2Id ? dataManager.getParentById(child.parent2Id) : null;
+            
+            if (parent2) {
+                // Show both parent phones
+                phoneDisplay = `${parent.phone1 || 'N/A'} (Primary) or ${parent2.phone1 || 'N/A'}`;
+            } else {
+                // Show only primary parent phone
+                phoneDisplay = `${parent.phone1 || 'N/A'} (Primary)`;
+            }
+        }
+        
         return `
             <tr>
                 <td>${record.childFullName}</td>
                 <td>${parent ? parent.name : 'Unknown'}</td>
-                <td>${record.signInTimestamp}</td>
+                <td>${phoneDisplay}</td>
                 <td>
                     <button type="button" class="btn btn-primary" onclick="loadChildForEditing(${record.childId})" style="margin-right: 10px;">
                         Edit
