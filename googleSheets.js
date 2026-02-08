@@ -583,16 +583,16 @@ class DataManager {
 
             // Parse parents (skip header row)
             this.cache.parents = parentData.slice(1).map((row, index) => ({
-                id: index + 2, // Row number in sheet (1-indexed + header)
-                name: row[0] || '',
-                relationship: row[1] || '',
-                phone1: row[2] || '',
-                phone2: row[3] || '',
-                email: row[4] || '',
-                address: row[5] || '',
-                disclaimerAgreed: row[6] === 'Yes',
-                registrationDate: row[7] || '',
-                lastUpdated: row[8] || ''
+                id: parseInt(row[0]) || (index + 2), // Use explicit Parent ID from column A, fallback to row number
+                name: row[1] || '',
+                relationship: row[2] || '',
+                phone1: row[3] || '',
+                phone2: row[4] || '',
+                email: row[5] || '',
+                address: row[6] || '',
+                disclaimerAgreed: row[7] === 'Yes',
+                registrationDate: row[8] || '',
+                lastUpdated: row[9] || ''
             }));
 
             // Parse children (skip header row)
@@ -668,14 +668,19 @@ class DataManager {
             showLoading();
             
             const timestamp = new Date().toLocaleDateString();
+            
+            // Generate new parent ID (max existing ID + 1)
+            const maxId = this.cache.parents.reduce((max, p) => Math.max(max, p.id), 0);
+            const newParentId = maxId + 1;
+            
             const row = [
+                newParentId, // Parent ID
                 parentData.name,
                 parentData.relationship,
                 parentData.phone1,
                 parentData.phone2,
                 parentData.email,
                 parentData.address,
-                parentData.collector,
                 parentData.disclaimerAgreed ? 'Yes' : 'No',
                 timestamp, // Registration date
                 timestamp  // Last updated
@@ -684,7 +689,6 @@ class DataManager {
             await this.sheetsAPI.appendSheet(CONFIG.SHEETS.PARENTS, [row]);
             
             // Optimize: Add to cache locally instead of full refresh
-            const newParentId = this.cache.parents.length + 2; // Row number in sheet
             const newParent = {
                 id: newParentId,
                 name: parentData.name,
@@ -763,13 +767,22 @@ class DataManager {
     async updateParent(parentData) {
         try {
             // parentData should include id
-            const rowNumber = parentData.id;
-            const range = `A${rowNumber}:I${rowNumber}`;
+            const parentId = parentData.id;
             
-            const existingParent = this.cache.parents.find(p => p.id === parentData.id);
+            // Find the row number for this parent ID
+            const parentIndex = this.cache.parents.findIndex(p => p.id === parentId);
+            if (parentIndex === -1) {
+                throw new Error(`Parent with ID ${parentId} not found`);
+            }
+            const rowNumber = parentIndex + 2; // +2 for 1-indexed and header row
+            
+            const range = `A${rowNumber}:J${rowNumber}`;
+            
+            const existingParent = this.cache.parents[parentIndex];
             const timestamp = new Date().toLocaleDateString();
             
             const row = [
+                parentId, // Parent ID (keep the same)
                 parentData.name,
                 parentData.relationship,
                 parentData.phone1,
@@ -784,7 +797,6 @@ class DataManager {
             await this.sheetsAPI.writeSheet(CONFIG.SHEETS.PARENTS, range, [row]);
             
             // Update cache
-            const parentIndex = this.cache.parents.findIndex(p => p.id === parentData.id);
             if (parentIndex !== -1) {
                 this.cache.parents[parentIndex] = {
                     ...this.cache.parents[parentIndex],
@@ -799,7 +811,7 @@ class DataManager {
                 };
             }
             
-            return parentData.id;
+            return parentId;
         } catch (error) {
             console.error('Error updating parent:', error);
             throw error;

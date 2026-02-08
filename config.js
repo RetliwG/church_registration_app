@@ -87,15 +87,16 @@ const CONFIG = {
 // Column mappings for each sheet
 const COLUMNS = {
     PARENTS: {
-        NAME: 'A',
-        RELATIONSHIP: 'B',
-        PHONE1: 'C',
-        PHONE2: 'D',
-        EMAIL: 'E',
-        ADDRESS: 'F',
-        DISCLAIMER_AGREED: 'G',
-        REGISTRATION_DATE: 'H',
-        LAST_UPDATED: 'I'
+        PARENT_ID: 'A',
+        NAME: 'B',
+        RELATIONSHIP: 'C',
+        PHONE1: 'D',
+        PHONE2: 'E',
+        EMAIL: 'F',
+        ADDRESS: 'G',
+        DISCLAIMER_AGREED: 'H',
+        REGISTRATION_DATE: 'I',
+        LAST_UPDATED: 'J'
     },
     CHILDREN: {
         PARENT_ID: 'A',

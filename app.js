@@ -420,6 +420,14 @@ function addParentForm() {
     parentForm.className = 'parent-form';
     parentForm.setAttribute('data-parent-id', parentFormCounter);
     
+    // Email and address are optional for second parent (will default to parent 1)
+    const emailRequired = parentFormCounter === 1 ? 'required' : '';
+    const emailLabel = parentFormCounter === 1 ? 'Email *' : 'Email';
+    const addressRequired = parentFormCounter === 1 ? 'required' : '';
+    const addressLabel = parentFormCounter === 1 ? 'Address *' : 'Address';
+    const addressPlaceholder = parentFormCounter === 1 ? '' : 'placeholder="Leave blank to use Parent 1\'s address"';
+    const emailPlaceholder = parentFormCounter === 1 ? '' : 'placeholder="Leave blank to use Parent 1\'s email"';
+    
     parentForm.innerHTML = `
         <button type="button" class="remove-parent-btn" onclick="removeParentForm(${parentFormCounter})">×</button>
         <h4>Parent/Guardian ${parentFormCounter}</h4>
@@ -448,13 +456,13 @@ function addParentForm() {
         </div>
         
         <div class="form-group">
-            <label for="parentEmail${parentFormCounter}">Email *</label>
-            <input type="email" id="parentEmail${parentFormCounter}" name="parentEmail" required>
+            <label for="parentEmail${parentFormCounter}">${emailLabel}</label>
+            <input type="email" id="parentEmail${parentFormCounter}" name="parentEmail" ${emailRequired} ${emailPlaceholder}>
         </div>
         
         <div class="form-group">
-            <label for="parentAddress${parentFormCounter}">Address *</label>
-            <textarea id="parentAddress${parentFormCounter}" name="parentAddress" rows="3" required></textarea>
+            <label for="parentAddress${parentFormCounter}">${addressLabel}</label>
+            <textarea id="parentAddress${parentFormCounter}" name="parentAddress" rows="3" ${addressRequired} ${addressPlaceholder}></textarea>
         </div>
     `;
     
@@ -546,9 +554,9 @@ function addChildForm() {
         </div>
         
         <div class="form-group">
-            <label for="childCollector${childFormCounter}">Who will collect this child at the end of the program? *</label>
-            <input type="text" id="childCollector${childFormCounter}" name="childCollector" placeholder="Parent name or other trusted adult" required>
-            <small>Please nominate a parent/guardian or another trusted adult</small>
+            <label for="childCollector${childFormCounter}">Who will collect this child at the end of the program?</label>
+            <input type="text" id="childCollector${childFormCounter}" name="childCollector" placeholder="Leave blank to default to parent name(s)">
+            <small>Please nominate a parent/guardian or another trusted adult (defaults to parent name(s) if left blank)</small>
         </div>
     `;
     
@@ -598,10 +606,14 @@ async function saveRegistration() {
             const parentEmail = document.getElementById(`parentEmail${formId}`);
             const parentAddress = document.getElementById(`parentAddress${formId}`);
             
+            // Email and address are only required for first parent
+            const isFirstParent = parseInt(formId) === 1;
+            
             // Validate required fields
             if (!parentName.value.trim() || !parentRelationship.value.trim() || 
-                !parentPhone1.value.trim() || !parentEmail.value.trim() || 
-                !parentAddress.value.trim()) {
+                !parentPhone1.value.trim() || 
+                (isFirstParent && !parentEmail.value.trim()) ||
+                (isFirstParent && !parentAddress.value.trim())) {
                 hideLoading();
                 showMessage('Please fill in all required parent fields.', 'error');
                 parentForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -621,6 +633,16 @@ async function saveRegistration() {
             });
         }
         
+        // If there's a second parent, default their email and address to Parent 1's if empty
+        if (parentDataList.length > 1) {
+            if (!parentDataList[1].email) {
+                parentDataList[1].email = parentDataList[0].email;
+            }
+            if (!parentDataList[1].address) {
+                parentDataList[1].address = parentDataList[0].address;
+            }
+        }
+        
         // Save all parents (max 2)
         const parentIds = [];
         for (const parentData of parentDataList) {
@@ -631,6 +653,12 @@ async function saveRegistration() {
         // Link children to both parents
         const primaryParentId = parentIds[0];
         const secondaryParentId = parentIds.length > 1 ? parentIds[1] : null;
+        
+        // Build default collector string from parent names
+        let defaultCollector = parentDataList[0].name;
+        if (parentDataList.length > 1) {
+            defaultCollector = `${parentDataList[0].name} or ${parentDataList[1].name}`;
+        }
         
         // Get and save/update children
         const childForms = document.querySelectorAll('.child-form');
@@ -648,12 +676,17 @@ async function saveRegistration() {
             const firstName = document.getElementById(`childFirstName${formId}`).value.trim();
             const lastName = document.getElementById(`childLastName${formId}`).value.trim();
             const dateOfBirth = document.getElementById(`childDOB${formId}`).value;
-            const collector = document.getElementById(`childCollector${formId}`).value.trim();
+            let collector = document.getElementById(`childCollector${formId}`).value.trim();
+            
+            // Default to parent names if collector is empty
+            if (!collector) {
+                collector = defaultCollector;
+            }
             
             // Validate required fields
-            if (!firstName || !lastName || !dateOfBirth || !collector) {
+            if (!firstName || !lastName || !dateOfBirth) {
                 hideLoading();
-                showMessage('Please fill in all required child fields, including who will collect them.', 'error');
+                showMessage('Please fill in all required child fields.', 'error');
                 childForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
