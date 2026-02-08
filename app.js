@@ -643,10 +643,27 @@ async function saveRegistration() {
             }
         }
         
-        // Save all parents (max 2)
+        // Save or update all parents (max 2)
         const parentIds = [];
-        for (const parentData of parentDataList) {
-            const parentId = await dataManager.saveParent(parentData);
+        for (let i = 0; i < parentDataList.length; i++) {
+            const parentData = parentDataList[i];
+            let parentId;
+            
+            if (i === 0 && editingParentId) {
+                // Update existing parent 1
+                parentData.id = editingParentId;
+                await dataManager.updateParent(parentData);
+                parentId = editingParentId;
+            } else if (i === 1 && editingParent2Id) {
+                // Update existing parent 2
+                parentData.id = editingParent2Id;
+                await dataManager.updateParent(parentData);
+                parentId = editingParent2Id;
+            } else {
+                // Create new parent
+                parentId = await dataManager.saveParent(parentData);
+            }
+            
             parentIds.push(parentId);
         }
         
@@ -671,7 +688,7 @@ async function saveRegistration() {
         const childPromises = [];
         
         for (const childForm of childForms) {
-            const formId = childForm.getAttribute('data-child-id');
+            const formId = parseInt(childForm.getAttribute('data-child-id'));
             
             const firstName = document.getElementById(`childFirstName${formId}`).value.trim();
             const lastName = document.getElementById(`childLastName${formId}`).value.trim();
@@ -703,7 +720,16 @@ async function saveRegistration() {
                 collector: collector  // New field for who will collect this child
             };
             
-            childPromises.push(dataManager.saveChild(childData));
+            // Check if this is an update or new child
+            const existingChildId = editingChildIds.get(formId);
+            if (existingChildId) {
+                // Update existing child
+                childData.id = existingChildId;
+                childPromises.push(dataManager.updateChild(childData));
+            } else {
+                // Create new child
+                childPromises.push(dataManager.saveChild(childData));
+            }
         }
         
         await Promise.all(childPromises);
@@ -725,6 +751,7 @@ function clearRegistrationForm() {
     
     // Clear edit mode
     editingParentId = null;
+    editingParent2Id = null;
     editingChildIds.clear();
     
     // Remove all parent forms and add one empty one
@@ -762,6 +789,7 @@ function loadChildForEditing(childId) {
         
         // Set edit mode
         editingParentId = parent1.id;
+        editingParent2Id = parent2 ? parent2.id : null;
         editingChildIds.clear();
         
         // Clear parent forms
@@ -851,7 +879,8 @@ function loadChildForEditing(childId) {
 
 // Sign in/out functionality
 let selectedChildren = [];
-let editingParentId = null; // Track if we're editing an existing parent
+let editingParentId = null; // Track if we're editing an existing parent 1
+let editingParent2Id = null; // Track if we're editing an existing parent 2
 let editingChildIds = new Map(); // Map form counter to actual child ID
 
 function handleChildSearch(event) {
