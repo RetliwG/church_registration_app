@@ -590,25 +590,26 @@ class DataManager {
                 phone2: row[3] || '',
                 email: row[4] || '',
                 address: row[5] || '',
-                collector: row[6] || '',
-                disclaimerAgreed: row[7] === 'Yes',
-                registrationDate: row[8] || '',
-                lastUpdated: row[9] || ''
+                disclaimerAgreed: row[6] === 'Yes',
+                registrationDate: row[7] || '',
+                lastUpdated: row[8] || ''
             }));
 
             // Parse children (skip header row)
             this.cache.children = childData.slice(1).map((row, index) => ({
                 id: index + 2, // Row number in sheet
                 parentId: parseInt(row[0]) || 0,
-                firstName: row[1] || '',
-                lastName: row[2] || '',
-                gender: row[3] || '',
-                mediaConsent: row[4] || '',
-                otherInfo: row[5] || '',
-                registrationDate: row[6] || '',
-                dateOfBirth: row[7] || '',
-                age: this.calculateAge(row[7]),
-                lastUpdated: row[9] || ''
+                parent2Id: parseInt(row[1]) || 0,
+                firstName: row[2] || '',
+                lastName: row[3] || '',
+                gender: row[4] || '',
+                mediaConsent: row[5] || '',
+                otherInfo: row[6] || '',
+                collector: row[7] || '',
+                registrationDate: row[8] || '',
+                dateOfBirth: row[9] || '',
+                age: this.calculateAge(row[9]),
+                lastUpdated: row[11] || ''
             }));
 
             // Parse sign-ins (skip header row)
@@ -692,7 +693,6 @@ class DataManager {
                 phone2: parentData.phone2,
                 email: parentData.email,
                 address: parentData.address,
-                collector: parentData.collector,
                 disclaimerAgreed: parentData.disclaimerAgreed,
                 registrationDate: timestamp,
                 lastUpdated: timestamp
@@ -718,11 +718,13 @@ class DataManager {
             
             const row = [
                 childData.parentId,
+                childData.parent2Id || '', // Second parent ID
                 childData.firstName,
                 childData.lastName,
                 childData.gender,
                 childData.mediaConsent,
                 childData.otherInfo,
+                childData.collector,
                 timestamp, // Registration date
                 childData.dateOfBirth,
                 age,
@@ -736,11 +738,13 @@ class DataManager {
             const newChild = {
                 id: newChildId,
                 parentId: childData.parentId,
+                parent2Id: childData.parent2Id || '',
                 firstName: childData.firstName,
                 lastName: childData.lastName,
                 gender: childData.gender,
                 mediaConsent: childData.mediaConsent,
                 otherInfo: childData.otherInfo,
+                collector: childData.collector,
                 registrationDate: timestamp,
                 dateOfBirth: childData.dateOfBirth,
                 age: age,
@@ -760,7 +764,7 @@ class DataManager {
         try {
             // parentData should include id
             const rowNumber = parentData.id;
-            const range = `A${rowNumber}:J${rowNumber}`;
+            const range = `A${rowNumber}:I${rowNumber}`;
             
             const existingParent = this.cache.parents.find(p => p.id === parentData.id);
             const timestamp = new Date().toLocaleDateString();
@@ -772,7 +776,6 @@ class DataManager {
                 parentData.phone2,
                 parentData.email,
                 parentData.address,
-                parentData.collector,
                 parentData.disclaimerAgreed ? 'Yes' : 'No',
                 existingParent?.registrationDate || timestamp, // Keep original registration date
                 timestamp // Update last updated
@@ -791,7 +794,6 @@ class DataManager {
                     phone2: parentData.phone2,
                     email: parentData.email,
                     address: parentData.address,
-                    collector: parentData.collector,
                     disclaimerAgreed: parentData.disclaimerAgreed,
                     lastUpdated: timestamp
                 };
@@ -809,18 +811,20 @@ class DataManager {
             // childData should include id
             const rowNumber = childData.id;
             const age = this.calculateAge(childData.dateOfBirth);
-            const range = `A${rowNumber}:J${rowNumber}`;
+            const range = `A${rowNumber}:L${rowNumber}`;
             const timestamp = new Date().toLocaleDateString();
             
             const existingChild = this.cache.children.find(c => c.id === childData.id);
             
             const row = [
                 childData.parentId,
+                childData.parent2Id || '',
                 childData.firstName,
                 childData.lastName,
                 childData.gender,
                 childData.mediaConsent,
                 childData.otherInfo,
+                childData.collector,
                 existingChild?.registrationDate || timestamp, // Keep original registration date
                 childData.dateOfBirth,
                 age,
@@ -835,11 +839,13 @@ class DataManager {
                 this.cache.children[childIndex] = {
                     ...this.cache.children[childIndex],
                     parentId: childData.parentId,
+                    parent2Id: childData.parent2Id || '',
                     firstName: childData.firstName,
                     lastName: childData.lastName,
                     gender: childData.gender,
                     mediaConsent: childData.mediaConsent,
                     otherInfo: childData.otherInfo,
+                    collector: childData.collector,
                     dateOfBirth: childData.dateOfBirth,
                     age: age,
                     lastUpdated: timestamp

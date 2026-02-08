@@ -10,7 +10,7 @@
     <meta http-equiv="Expires" content="0">
     
     <title>Ministry Registration</title>
-    <link rel="stylesheet" href="styles.css?v=18&t=1728225600">
+    <link rel="stylesheet" href="styles.css?v=31&t=1739098800">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -54,49 +54,13 @@
         <section id="registration" class="section active">
             <h2>Parent & Child Registration</h2>
             
-            <!-- Parent Registration Form -->
+            <!-- Parent Registration Forms -->
             <div class="form-container">
-                <h3>Parent Information</h3>
-                <form id="parentForm">
-                    <div class="form-group">
-                        <label for="parentName">Parent Name *</label>
-                        <input type="text" id="parentName" name="parentName" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="parentRelationship">Relationship to Child *</label>
-                        <input type="text" id="parentRelationship" name="parentRelationship" placeholder="e.g., Mother, Father, Guardian" required>
-                    </div>
-                    
-                    <p class="form-help-text">In the case of an emergency, please list the phone numbers where you and another trusted adult may be contacted during the course of the program. The first phone number will be tried followed by the second.</p>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="parentPhone1">Phone 1 *</label>
-                            <input type="tel" id="parentPhone1" name="parentPhone1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="parentPhone2">Phone 2</label>
-                            <input type="tel" id="parentPhone2" name="parentPhone2">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="parentEmail">Email *</label>
-                        <input type="email" id="parentEmail" name="parentEmail" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="parentAddress">Address *</label>
-                        <textarea id="parentAddress" name="parentAddress" rows="3" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="parentCollector">Who will collect your child(ren) at the end of the program?</label>
-                        <input type="text" id="parentCollector" name="parentCollector" placeholder="Leave blank to default to parent name">
-                        <small>Please nominate either yourself or another trusted adult</small>
-                    </div>
-                </form>
+                <h3>Parent/Guardian Information</h3>
+                <div id="parentsContainer">
+                    <!-- Parent forms will be added dynamically -->
+                </div>
+                <button type="button" id="addParentBtn" class="btn btn-secondary">Add Parent/Guardian</button>
             </div>
 
             <!-- Children Registration -->
@@ -218,9 +182,9 @@
     <div id="messageContainer" class="message-container"></div>
 
     <!-- Scripts -->
-    <script src="config.js?v=30&t=1739008800"></script>
-    <script src="oauth.js?v=30&t=1739008800"></script>
-    <script src="googleSheets.js?v=30&t=1739008800"></script>
-    <script src="app.js?v=30&t=1739008800"></script>
+    <script src="config.js?v=31&t=1739098800"></script>
+    <script src="oauth.js?v=31&t=1739098800"></script>
+    <script src="googleSheets.js?v=31&t=1739098800"></script>
+    <script src="app.js?v=31&t=1739098800"></script>
 </body>
 </html>

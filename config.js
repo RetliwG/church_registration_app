@@ -89,26 +89,27 @@ const COLUMNS = {
     PARENTS: {
         NAME: 'A',
         RELATIONSHIP: 'B',
-        PHONE1: 'C', 
+        PHONE1: 'C',
         PHONE2: 'D',
         EMAIL: 'E',
         ADDRESS: 'F',
-        COLLECTOR: 'G',
-        DISCLAIMER_AGREED: 'H',
-        REGISTRATION_DATE: 'I',
-        LAST_UPDATED: 'J'
+        DISCLAIMER_AGREED: 'G',
+        REGISTRATION_DATE: 'H',
+        LAST_UPDATED: 'I'
     },
     CHILDREN: {
         PARENT_ID: 'A',
-        FIRST_NAME: 'B',
-        LAST_NAME: 'C', 
-        GENDER: 'D',
-        MEDIA_CONSENT: 'E',
-        OTHER_INFO: 'F',
-        REGISTRATION_DATE: 'G',
-        DATE_OF_BIRTH: 'H',
-        AGE: 'I',
-        LAST_UPDATED: 'J'
+        PARENT2_ID: 'B',
+        FIRST_NAME: 'C',
+        LAST_NAME: 'D', 
+        GENDER: 'E',
+        MEDIA_CONSENT: 'F',
+        OTHER_INFO: 'G',
+        COLLECTOR: 'H',
+        REGISTRATION_DATE: 'I',
+        DATE_OF_BIRTH: 'J',
+        AGE: 'K',
+        LAST_UPDATED: 'L'
     },
     SIGNIN: {
         SIGNIN_TIMESTAMP: 'A',

@@ -199,6 +199,7 @@ function setupEventListeners() {
     });
 
     // Registration form
+    document.getElementById('addParentBtn').addEventListener('click', addParentForm);
     document.getElementById('addChildBtn').addEventListener('click', addChildForm);
     document.getElementById('saveRegistrationBtn').addEventListener('click', saveRegistration);
     document.getElementById('clearFormBtn').addEventListener('click', clearRegistrationForm);
@@ -218,7 +219,8 @@ function setupEventListeners() {
     // Check initial network status
     updateNetworkStatus();
 
-    // Add first child form by default
+    // Add first parent and child forms by default
+    addParentForm();
     addChildForm();
 }
 
@@ -400,7 +402,96 @@ function initializeMobileHandling() {
 }
 
 // Registration functionality
+let parentFormCounter = 0;
 let childFormCounter = 0;
+
+function addParentForm() {
+    // Limit to maximum of 2 parents
+    const currentParentForms = document.querySelectorAll('.parent-form');
+    if (currentParentForms.length >= 2) {
+        showMessage('Maximum of 2 parents/guardians allowed.', 'warning');
+        return;
+    }
+    
+    parentFormCounter++;
+    const container = document.getElementById('parentsContainer');
+    
+    const parentForm = document.createElement('div');
+    parentForm.className = 'parent-form';
+    parentForm.setAttribute('data-parent-id', parentFormCounter);
+    
+    parentForm.innerHTML = `
+        <button type="button" class="remove-parent-btn" onclick="removeParentForm(${parentFormCounter})">×</button>
+        <h4>Parent/Guardian ${parentFormCounter}</h4>
+        
+        <div class="form-group">
+            <label for="parentName${parentFormCounter}">Parent Name *</label>
+            <input type="text" id="parentName${parentFormCounter}" name="parentName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="parentRelationship${parentFormCounter}">Relationship to Child *</label>
+            <input type="text" id="parentRelationship${parentFormCounter}" name="parentRelationship" placeholder="e.g., Mother, Father, Guardian" required>
+        </div>
+        
+        <p class="form-help-text">In the case of an emergency, please list the phone numbers where you and another trusted adult may be contacted during the course of the program. The first phone number will be tried followed by the second.</p>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="parentPhone1_${parentFormCounter}">Phone 1 *</label>
+                <input type="tel" id="parentPhone1_${parentFormCounter}" name="parentPhone1" required>
+            </div>
+            <div class="form-group">
+                <label for="parentPhone2_${parentFormCounter}">Phone 2</label>
+                <input type="tel" id="parentPhone2_${parentFormCounter}" name="parentPhone2">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="parentEmail${parentFormCounter}">Email *</label>
+            <input type="email" id="parentEmail${parentFormCounter}" name="parentEmail" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="parentAddress${parentFormCounter}">Address *</label>
+            <textarea id="parentAddress${parentFormCounter}" name="parentAddress" rows="3" required></textarea>
+        </div>
+    `;
+    
+    container.appendChild(parentForm);
+    updateAddParentButtonState();
+}
+
+function updateAddParentButtonState() {
+    const currentParentForms = document.querySelectorAll('.parent-form');
+    const addParentBtn = document.getElementById('addParentBtn');
+    
+    if (currentParentForms.length >= 2) {
+        addParentBtn.disabled = true;
+        addParentBtn.style.opacity = '0.5';
+        addParentBtn.style.cursor = 'not-allowed';
+        addParentBtn.title = 'Maximum of 2 parents/guardians reached';
+    } else {
+        addParentBtn.disabled = false;
+        addParentBtn.style.opacity = '1';
+        addParentBtn.style.cursor = 'pointer';
+        addParentBtn.title = 'Add another parent/guardian';
+    }
+}
+
+function removeParentForm(parentId) {
+    const parentForm = document.querySelector(`[data-parent-id="${parentId}"]`);
+    if (parentForm) {
+        parentForm.remove();
+    }
+    
+    // If no parent forms remain, add one
+    if (document.querySelectorAll('.parent-form').length === 0) {
+        addParentForm();
+    }
+    
+    updateAddParentButtonState();
+}
 
 function addChildForm() {
     childFormCounter++;
@@ -453,6 +544,12 @@ function addChildForm() {
             <small class="field-description">Are there any medical or psychological conditions which require special attention that we should know about e.g. diabetes, asthma, allergy to bee-sting, other allergies including food, hearing or sight impairment, ADHD, behavioural issues, formal counselling situations, or any other? Please list below:</small>
             <textarea id="childOtherInfo${childFormCounter}" name="childOtherInfo" rows="3"></textarea>
         </div>
+        
+        <div class="form-group">
+            <label for="childCollector${childFormCounter}">Who will collect this child at the end of the program? *</label>
+            <input type="text" id="childCollector${childFormCounter}" name="childCollector" placeholder="Parent name or other trusted adult" required>
+            <small>Please nominate a parent/guardian or another trusted adult</small>
+        </div>
     `;
     
     container.appendChild(childForm);
@@ -474,14 +571,6 @@ async function saveRegistration() {
     try {
         showLoading();
         
-        // Validate parent form
-        const parentForm = document.getElementById('parentForm');
-        if (!parentForm.checkValidity()) {
-            parentForm.reportValidity();
-            hideLoading();
-            return;
-        }
-        
         // Validate disclaimer agreement
         const disclaimerAgree = document.getElementById('disclaimerAgree');
         if (!disclaimerAgree.checked) {
@@ -491,33 +580,66 @@ async function saveRegistration() {
             return;
         }
         
-        // Get parent data
-        const parentName = document.getElementById('parentName').value.trim();
-        const parentData = {
-            name: parentName,
-            relationship: document.getElementById('parentRelationship').value.trim(),
-            phone1: document.getElementById('parentPhone1').value.trim(),
-            phone2: document.getElementById('parentPhone2').value.trim(),
-            email: document.getElementById('parentEmail').value.trim(),
-            address: document.getElementById('parentAddress').value.trim(),
-            collector: document.getElementById('parentCollector').value.trim() || parentName,
-            disclaimerAgreed: disclaimerAgree.checked
-        };
-        
-        // Save or update parent
-        let parentId;
-        if (editingParentId) {
-            // Update existing parent
-            parentData.id = editingParentId;
-            await dataManager.updateParent(parentData);
-            parentId = editingParentId;
-        } else {
-            // Create new parent
-            parentId = await dataManager.saveParent(parentData);
+        // Get and validate all parent forms
+        const parentForms = document.querySelectorAll('.parent-form');
+        if (parentForms.length === 0) {
+            hideLoading();
+            showMessage('Please add at least one parent/guardian.', 'error');
+            return;
         }
+        
+        const parentDataList = [];
+        for (const parentForm of parentForms) {
+            const formId = parentForm.getAttribute('data-parent-id');
+            
+            const parentName = document.getElementById(`parentName${formId}`);
+            const parentRelationship = document.getElementById(`parentRelationship${formId}`);
+            const parentPhone1 = document.getElementById(`parentPhone1_${formId}`);
+            const parentEmail = document.getElementById(`parentEmail${formId}`);
+            const parentAddress = document.getElementById(`parentAddress${formId}`);
+            
+            // Validate required fields
+            if (!parentName.value.trim() || !parentRelationship.value.trim() || 
+                !parentPhone1.value.trim() || !parentEmail.value.trim() || 
+                !parentAddress.value.trim()) {
+                hideLoading();
+                showMessage('Please fill in all required parent fields.', 'error');
+                parentForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            
+            const parentPhone2 = document.getElementById(`parentPhone2_${formId}`);
+            
+            parentDataList.push({
+                name: parentName.value.trim(),
+                relationship: parentRelationship.value.trim(),
+                phone1: parentPhone1.value.trim(),
+                phone2: parentPhone2.value.trim(),
+                email: parentEmail.value.trim(),
+                address: parentAddress.value.trim(),
+                disclaimerAgreed: disclaimerAgree.checked
+            });
+        }
+        
+        // Save all parents (max 2)
+        const parentIds = [];
+        for (const parentData of parentDataList) {
+            const parentId = await dataManager.saveParent(parentData);
+            parentIds.push(parentId);
+        }
+        
+        // Link children to both parents
+        const primaryParentId = parentIds[0];
+        const secondaryParentId = parentIds.length > 1 ? parentIds[1] : null;
         
         // Get and save/update children
         const childForms = document.querySelectorAll('.child-form');
+        if (childForms.length === 0) {
+            hideLoading();
+            showMessage('Please add at least one child.', 'error');
+            return;
+        }
+        
         const childPromises = [];
         
         for (const childForm of childForms) {
@@ -526,34 +648,29 @@ async function saveRegistration() {
             const firstName = document.getElementById(`childFirstName${formId}`).value.trim();
             const lastName = document.getElementById(`childLastName${formId}`).value.trim();
             const dateOfBirth = document.getElementById(`childDOB${formId}`).value;
+            const collector = document.getElementById(`childCollector${formId}`).value.trim();
             
             // Validate required fields
-            if (!firstName || !lastName || !dateOfBirth) {
+            if (!firstName || !lastName || !dateOfBirth || !collector) {
                 hideLoading();
-                showMessage('Please fill in all required child fields.', 'error');
+                showMessage('Please fill in all required child fields, including who will collect them.', 'error');
+                childForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
             
             const childData = {
-                parentId: parentId,
+                parentId: primaryParentId,
+                parent2Id: secondaryParentId,
                 firstName: firstName,
                 lastName: lastName,
                 gender: document.getElementById(`childGender${formId}`).value,
                 mediaConsent: document.getElementById(`mediaConsent${formId}`).value,
                 otherInfo: document.getElementById(`childOtherInfo${formId}`).value.trim(),
-                dateOfBirth: dateOfBirth
+                dateOfBirth: dateOfBirth,
+                collector: collector  // New field for who will collect this child
             };
             
-            // Check if this child is being edited
-            const existingChildId = editingChildIds.get(parseInt(formId));
-            if (existingChildId) {
-                // Update existing child
-                childData.id = existingChildId;
-                childPromises.push(dataManager.updateChild(childData));
-            } else {
-                // Create new child
-                childPromises.push(dataManager.saveChild(childData));
-            }
+            childPromises.push(dataManager.saveChild(childData));
         }
         
         await Promise.all(childPromises);
@@ -570,15 +687,17 @@ async function saveRegistration() {
 }
 
 function clearRegistrationForm() {
-    // Clear parent form
-    document.getElementById('parentForm').reset();
-    
     // Clear disclaimer checkbox
     document.getElementById('disclaimerAgree').checked = false;
     
     // Clear edit mode
     editingParentId = null;
     editingChildIds.clear();
+    
+    // Remove all parent forms and add one empty one
+    document.getElementById('parentsContainer').innerHTML = '';
+    parentFormCounter = 0;
+    addParentForm();
     
     // Remove all child forms and add one empty one
     document.getElementById('childrenContainer').innerHTML = '';
@@ -594,11 +713,13 @@ function loadChildForEditing(childId) {
             return;
         }
         
-        const parent = dataManager.getParentById(child.parentId);
-        if (!parent) {
+        const parent1 = dataManager.getParentById(child.parentId);
+        if (!parent1) {
             showMessage('Parent information not found.', 'error');
             return;
         }
+        
+        const parent2 = child.parent2Id ? dataManager.getParentById(child.parent2Id) : null;
         
         // Switch to registration section
         showSection('registration');
@@ -607,20 +728,39 @@ function loadChildForEditing(childId) {
         clearRegistrationForm();
         
         // Set edit mode
-        editingParentId = parent.id;
+        editingParentId = parent1.id;
         editingChildIds.clear();
         
-        // Populate parent information
-        document.getElementById('parentName').value = parent.name || '';
-        document.getElementById('parentRelationship').value = parent.relationship || '';
-        document.getElementById('parentPhone1').value = parent.phone1 || '';
-        document.getElementById('parentPhone2').value = parent.phone2 || '';
-        document.getElementById('parentEmail').value = parent.email || '';
-        document.getElementById('parentAddress').value = parent.address || '';
-        document.getElementById('parentCollector').value = parent.collector || '';
-        document.getElementById('disclaimerAgree').checked = parent.disclaimerAgreed || false;
+        // Clear parent forms
+        document.getElementById('parentsContainer').innerHTML = '';
+        parentFormCounter = 0;
         
-        // Get all children for this parent
+        // Add and populate first parent
+        addParentForm();
+        const parent1FormId = parentFormCounter;
+        document.getElementById(`parentName${parent1FormId}`).value = parent1.name || '';
+        document.getElementById(`parentRelationship${parent1FormId}`).value = parent1.relationship || '';
+        document.getElementById(`parentPhone1_${parent1FormId}`).value = parent1.phone1 || '';
+        document.getElementById(`parentPhone2_${parent1FormId}`).value = parent1.phone2 || '';
+        document.getElementById(`parentEmail${parent1FormId}`).value = parent1.email || '';
+        document.getElementById(`parentAddress${parent1FormId}`).value = parent1.address || '';
+        
+        // Add and populate second parent if exists
+        if (parent2) {
+            addParentForm();
+            const parent2FormId = parentFormCounter;
+            document.getElementById(`parentName${parent2FormId}`).value = parent2.name || '';
+            document.getElementById(`parentRelationship${parent2FormId}`).value = parent2.relationship || '';
+            document.getElementById(`parentPhone1_${parent2FormId}`).value = parent2.phone1 || '';
+            document.getElementById(`parentPhone2_${parent2FormId}`).value = parent2.phone2 || '';
+            document.getElementById(`parentEmail${parent2FormId}`).value = parent2.email || '';
+            document.getElementById(`parentAddress${parent2FormId}`).value = parent2.address || '';
+        }
+        
+        // Set disclaimer
+        document.getElementById('disclaimerAgree').checked = parent1.disclaimerAgreed || false;
+        
+        // Get all children for these parents
         const siblings = dataManager.getChildrenByParentId(child.parentId);
         
         // Clear the default empty child form
@@ -665,6 +805,7 @@ function loadChildForEditing(childId) {
             document.getElementById(`childGender${formId}`).value = sibling.gender || '';
             document.getElementById(`mediaConsent${formId}`).value = sibling.mediaConsent || '';
             document.getElementById(`childOtherInfo${formId}`).value = sibling.otherInfo || '';
+            document.getElementById(`childCollector${formId}`).value = sibling.collector || '';
         });
         
         showMessage('Child information loaded for editing. Update any fields and click Save.', 'info');

@@ -292,6 +292,45 @@ nav {
     justify-content: center;
 }
 
+/* Parent Form Styles */
+.parent-form {
+    background: white;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.parent-form h4 {
+    color: #28a745;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.remove-parent-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-parent-btn:hover {
+    background: #c82333;
+    transform: rotate(90deg);
+    transition: all 0.3s ease;
+}
+
 /* Sign In/Out Styles */
 .signin-container {
     max-width: 600px;
