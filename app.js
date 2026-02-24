@@ -1573,3 +1573,17 @@ async function switchMinistry() {
     }
 }
 
+// Google OAuth sign out handler
+window.addEventListener('DOMContentLoaded', () => {
+    const signOutBtn = document.getElementById('googleSignOutBtn');
+    if (signOutBtn) {
+        signOutBtn.addEventListener('click', async () => {
+            if (window.oauthManager && typeof window.oauthManager.signOut === 'function') {
+                await window.oauthManager.signOut();
+                // Optionally reload or redirect to login
+                window.location.reload();
+            }
+        });
+    }
+});
+
